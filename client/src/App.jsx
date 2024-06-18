@@ -7,6 +7,18 @@ import NotFound from './components/NotFoundComponent';
 import { LoginForm } from './components/AuthComponents';
 import API from './assets/API.mjs';
 
+//defining WelcomePage functional component
+function WelcomePage({ handleStartClick }) {
+  return (
+    <Container className="d-flex flex-column justify-content-center align-items-center min-vh-100" style={{ marginTop: '-10vh' }}>
+      <h2>Welcome to the Meme Guessing Game!</h2>
+      <p>Press the button to start guessing the meme.</p>
+      <button className="btn btn-primary" onClick={handleStartClick}>Start</button>
+    </Container>
+  );
+}
+
+
 function App() {
   const [count, setCount] = useState(0)
   const [loggedIn, setLoggedIn] = useState(false);
@@ -22,6 +34,11 @@ function App() {
     checkAuth();
   }, []);
 
+  const handleStartClick = () => {
+    // Handle start button click event
+    console.log("Start button clicked!");
+  
+};
 
   const handleLogin = async (credentials) => {
     try {
@@ -44,27 +61,35 @@ function App() {
 
   return (
     <Routes>
-      <Route element={<>
-        {/* UPDATED */}
-        <NavHeader loggedIn={loggedIn} handleLogout={handleLogout} />
-        <Container fluid className='mt-3'>
-          {/* NEW */}
-          {message && <Row>
-            <Alert variant={message.type} onClose={() => setMessage('')} dismissible>{message.msg}</Alert>
-          </Row> }
-          <Outlet/>
-        </Container>
+      <Route element={
+        <>
+          {/* NavHeader and container for all routes */}
+          <NavHeader loggedIn={loggedIn} handleLogout={handleLogout} />
+          <Container fluid className='mt-3'>
+            {message && (
+              <Row>
+                <Alert variant={message.type} onClose={() => setMessage('')} dismissible>
+                  {message.msg}
+                </Alert>
+              </Row>
+            )}
+            {/* Outlet for rendering nested routes */}
+            <Outlet />
+          </Container>
         </>
       }>
-        <Route path="*" element={ <NotFound/> } />
-        <Route path='/login' element={
-          loggedIn ? <Navigate replace to='/' /> : <LoginForm login={handleLogin} />
-        } />
+        {/* Nested routes */}
+        <Route path="*" element={<NotFound />} />
+        <Route path="/" element={<WelcomePage handleStartClick={handleStartClick} />} />
+        <Route
+          path="/login"
+          element={loggedIn ? <Navigate replace to="/" /> : <LoginForm login={handleLogin} />}
+        />
       </Route>
     </Routes>
   );
-
 }
 
 export default App;
+
 
