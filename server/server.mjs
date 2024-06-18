@@ -3,6 +3,7 @@ import morgan from 'morgan';
 import cors from 'cors';
 import {check, validationResult} from 'express-validator';
 import {getUser} from './user-dao.mjs';
+import { getMeme } from './meme-dao.mjs';
 
 import passport from 'passport';
 import LocalStrategy from 'passport-local';
@@ -36,7 +37,7 @@ passport.serializeUser(function (user, cb) {
   
   passport.deserializeUser(function (user, cb) { // this user is id+ name
     return cb(null, user);
-    // if needed, we can do extra check here (e.g., double check that the user is still in the database, etc.)
+    // if needed, we can do extra check here
   });
   
 
@@ -89,6 +90,16 @@ app.get('/api/sessions/current', (req, res) => {
       res.end();
     });
   });
+
+  // GET /api/memes
+app.get('/api/memes', async (req, res) => {
+  try {
+    const meme = await getMeme();
+    res.status(200).json({ memeId: meme.id, imageUrl: meme.url });
+  } catch (err) {
+    res.status(500).json({ error: ' Server error while retrieving meme.' });
+  }
+});
   
-  // far partire il server
+ 
   app.listen(port, () => { console.log(`API server started at http://localhost:${port}`); });

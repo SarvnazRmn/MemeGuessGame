@@ -5,6 +5,7 @@ import { Routes, Route, Outlet, Navigate, useNavigate  } from 'react-router-dom'
 import NavHeader from "./components/NavHeader";
 import NotFound from './components/NotFoundComponent';
 import { LoginForm } from './components/AuthComponents';
+import GamePage from './components/GamePage';
 import API from './assets/API.mjs';
 
 //defining WelcomePage component
@@ -18,16 +19,6 @@ function WelcomePage({ handleStartClick }) {    //using Eventhandler for start b
   );
 }
 
-// defining GamePage component
-function GamePage() {
-  return (
-    <Container className="d-flex flex-column justify-content-start align-items-center pt-3">
-      <h2>The Game Begins!</h2>
-      <p>Guess the meme...</p>
-      {/* Add your game logic and components here */}
-    </Container>
-  );
-}
 
 function App() {
   const [count, setCount] = useState(0)
