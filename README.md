@@ -32,9 +32,9 @@
   - Response: `{ "message": "Logout successful" }`
   - Response Status Codes:
       - 200: OK - Logout successful.
-- GET `/api/memes`: Retrieves a random meme with associated captions for a new game round.
+- GET `/api/memes`: Retrieves a random meme.
   - request parameters: None
-  - Response: `{ "memeId": "integer", "imageUrl": "string", "captions": ["string", "string", ...] }`
+  - Response: `{ "memeId": "integer", "imageUrl": "string" }`
   - response status codes:
       - 200: OK - Meme retrieved successfully.
       - 500: Internal Server Error - Server error while retrieving meme.

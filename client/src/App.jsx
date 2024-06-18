@@ -1,14 +1,14 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useEffect, useState } from 'react';
 import { Container, Row, Alert } from 'react-bootstrap';
-import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import { Routes, Route, Outlet, Navigate, useNavigate  } from 'react-router-dom';
 import NavHeader from "./components/NavHeader";
 import NotFound from './components/NotFoundComponent';
 import { LoginForm } from './components/AuthComponents';
 import API from './assets/API.mjs';
 
-//defining WelcomePage functional component
-function WelcomePage({ handleStartClick }) {
+//defining WelcomePage component
+function WelcomePage({ handleStartClick }) {    //using Eventhandler for start button
   return (
     <Container className="d-flex flex-column justify-content-center align-items-center min-vh-100" style={{ marginTop: '-10vh' }}>
       <h2>Welcome to the Meme Guessing Game!</h2>
@@ -18,6 +18,16 @@ function WelcomePage({ handleStartClick }) {
   );
 }
 
+// defining GamePage component
+function GamePage() {
+  return (
+    <Container className="d-flex flex-column justify-content-start align-items-center pt-3">
+      <h2>The Game Begins!</h2>
+      <p>Guess the meme...</p>
+      {/* Add your game logic and components here */}
+    </Container>
+  );
+}
 
 function App() {
   const [count, setCount] = useState(0)
@@ -34,11 +44,13 @@ function App() {
     checkAuth();
   }, []);
 
+  const navigate = useNavigate();
+  //Eventhandler for start button
   const handleStartClick = () => {
-    // Handle start button click event
     console.log("Start button clicked!");
-  
-};
+    // Navigate to the game page
+    navigate('/game'); 
+  };
 
   const handleLogin = async (credentials) => {
     try {
@@ -57,6 +69,7 @@ function App() {
     setLoggedIn(false);
     // clean up everything
     setMessage('');
+    navigate('/');
   };
 
   return (
@@ -81,6 +94,7 @@ function App() {
         {/* Nested routes */}
         <Route path="*" element={<NotFound />} />
         <Route path="/" element={<WelcomePage handleStartClick={handleStartClick} />} />
+        <Route path="/game" element={<GamePage />} />
         <Route
           path="/login"
           element={loggedIn ? <Navigate replace to="/" /> : <LoginForm login={handleLogin} />}
