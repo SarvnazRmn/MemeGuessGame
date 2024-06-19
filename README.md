@@ -59,6 +59,17 @@
       - 400: Bad Request - Invalid request body or parameters.
       - 404: Not Found - Game or round not found.
       - 500: Internal Server Error - Server error while starting a new round.
+
+- POST `/api/game/round/guess`:  Submits a guess for a round.
+  - Path Parameters: `gameId, roundId `
+  - Request Body: `{ captionId: integer }`
+  - Response: `{ correct: boolean, score: integer, bestCaptions: [{ id: integer, text: string }] }`
+  - response status codes:
+      - 200: OK - The guess was successfully processed.
+      - 400: Bad Request - Invalid request body or parameters.
+      - 404: Not Found - Game or round not found.
+      - 500: Internal Server Error - Server error while starting a new round.
+
 - GET `/api/users/profile`: Retrieves the profile and game history of a user.
   - Path Parameters: `userId (user ID)`
   - Response: `{ "user": { "id": "integer", "username": "string" }, "games": [{ "gameId": "integer", "rounds": [{ "meme": "string", "score": "integer" }] }] }`
