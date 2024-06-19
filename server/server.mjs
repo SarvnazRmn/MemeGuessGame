@@ -3,7 +3,7 @@ import morgan from 'morgan';
 import cors from 'cors';
 import {check, validationResult} from 'express-validator';
 import {getUser} from './user-dao.mjs';
-import { getMeme } from './meme-dao.mjs';
+import { getMeme, getRandomCaptions, getBestMatchingCaptions } from './meme-dao.mjs';
 
 import passport from 'passport';
 import LocalStrategy from 'passport-local';
@@ -101,5 +101,33 @@ app.get('/api/memes', async (req, res) => {
   }
 });
   
- 
+ //GET / api / memes / captions
+ app.get('/api/meme/captions', async (req, res) => {
+  try {
+    const meme = await getMeme();
+    const memeId = meme.id;
+
+    // Fetch best-matching captions for the meme ID
+    const bestMatchingCaptions = await getBestMatchingCaptions(memeId);
+    const bestMatchingIds = bestMatchingCaptions.map(caption => caption.id);
+
+    // Fetch random captions excluding the best-matching ones
+    const randomCaptions = await getRandomCaptions(bestMatchingIds, 5);
+
+    // Combine the best-matching captions with the random captions
+    const allCaptions = [...bestMatchingCaptions, ...randomCaptions];
+
+    // Shuffle the combined captions to ensure randomness
+    for (let i = allCaptions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allCaptions[i], allCaptions[j]] = [allCaptions[j], allCaptions[i]];
+    }
+
+    res.status(200).json({ meme, captions: allCaptions });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
   app.listen(port, () => { console.log(`API server started at http://localhost:${port}`); });

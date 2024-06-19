@@ -54,6 +54,19 @@ const logIn = async (credentials) => {
     }
   };
 
-  const API = { logIn,getUserInfo,getMeme,logOut};
+  const getMemeWithCaptions = async () => {
+    try {
+      const response = await fetch(SERVER_URL + `/api/meme/captions`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch meme with captions from server');
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to fetch meme with captions:', error);
+      throw error;
+    }
+  };
+
+  const API = { logIn,getUserInfo,getMeme,getMemeWithCaptions,logOut};
   
 export default API;

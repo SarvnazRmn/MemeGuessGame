@@ -1,62 +1,61 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Alert, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Alert, Spinner, Card, Button } from 'react-bootstrap';
 import API from '../assets/API.mjs';
 
 function GamePage() {
   const [meme, setMeme] = useState(null);
   const [error, setError] = useState('');
+  const [captions, setCaptions] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchRandomMeme = async () => {
       setLoading(true);
       try {
-        const memeData = await API.getMeme();
-        setMeme(memeData);
+        const memeData = await API.getMemeWithCaptions();
+        setMeme(memeData.meme);
+        setCaptions(memeData.captions);
         setError('');
-    } catch (error) {
-      console.error('Error fetching meme:', error); // Log the error for debugging
-      setError('Failed to fetch meme. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+      } catch (err) {
+        setError(err.message || 'Failed to fetch meme and captions');
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchRandomMeme();
   }, []);
 
-  const handleFetchAnotherMeme = async () => {
-    setLoading(true);
-    try {
-      const memeData = await API.getMeme();
-      setMeme(memeData);
-      setError('');
-    } catch (error) {
-      console.error('Error fetching meme:', error); // Log the error for debugging
-      setError('Failed to fetch meme. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  if (error) {
+    return (
+      <Container className="mt-5">
+        <Alert variant="danger">Error: {error}</Alert>
+      </Container>
+    );
+  }
   return (
-    <Container className="d-flex flex-column justify-content-start align-items-center pt-3">
-      <h2>The Game Begins!</h2>
-      <p>Guess the meme...</p>
-      {loading && <Spinner animation="border" role="status" />}
-      {error && <Alert variant="danger">{error}</Alert>}
+    <Container className="mt-5">
       {meme && (
-        <div>
-          <img
-            src={meme.imageUrl}
+        <Card>
+          <Card.Img
+            variant="top"
+            src={meme.url}
             alt="Meme"
-            style={{ maxWidth: '100%', maxHeight: '300px', marginBottom: '10px' }}
+            className="img-fluid mx-auto d-block"
+            style={{ maxWidth: '30%', height: 'auto', maxHeight: '300px' }}
           />
-        </div>
+          <Card.Body className="text-center">
+            <Card.Title>Choose a Caption for the Meme</Card.Title>
+            <div className="d-flex flex-column">
+              {captions.map(caption => (
+                <Button key={caption.id} variant="outline-primary" className="my-2">
+                  {caption.caption}
+                </Button>
+              ))}
+            </div>
+          </Card.Body>
+        </Card>
       )}
-      <button className="btn btn-primary" onClick={handleFetchAnotherMeme}>
-        Fetch Another Meme
-      </button>
     </Container>
   );
 }
