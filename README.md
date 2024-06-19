@@ -38,12 +38,12 @@
   - response status codes:
       - 200: OK - Meme retrieved successfully.
       - 500: Internal Server Error - Server error while retrieving meme.
-- GET `/api/memes/captions`: Retrieves all possible captions.
-  - Query Parameters: None
-  - Response: `{ "captions": ["string", "string", ...] }`
-  - response status codes:
+-  GET `/api/meme/captions`: Retrieves seven possible captions for a given meme .
+  - request Parameters: memeId
+  - Response: `{ captions: [{ id: integer, text: string }, { id: integer, text: string },...] }`
       - 200: OK - Captions retrieved successfully.
       - 500: Internal Server Error - Server error while retrieving captions.
+
 - POST `/api/games`:  Starts a new game for the authenticated user.
   - Request Body: None
   - Response: `{ "gameId": "integer", "rounds": [] }`
