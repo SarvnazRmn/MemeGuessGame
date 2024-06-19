@@ -8,6 +8,7 @@ function GamePage() {
   const [captions, setCaptions] = useState([]);
   const [loading, setLoading] = useState(false);
 
+
   useEffect(() => {
     const fetchRandomMeme = async () => {
       setLoading(true);
@@ -33,6 +34,8 @@ function GamePage() {
       </Container>
     );
   }
+
+  
   return (
     <Container className="mt-5">
       {meme && (
