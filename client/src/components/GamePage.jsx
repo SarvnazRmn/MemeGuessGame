@@ -7,6 +7,9 @@ function GamePage() {
   const [error, setError] = useState('');
   const [captions, setCaptions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [selectedCaption, setSelectedCaption] = useState(null);
+  const [correctCaptions, setCorrectCaptions] = useState([]);
 
 
   useEffect(() => {
@@ -14,9 +17,20 @@ function GamePage() {
       setLoading(true);
       try {
         const memeData = await API.getMemeWithCaptions();
-        setMeme(memeData.meme);
+        //client memorize the 2 first answer are correct.
         setCaptions(memeData.captions);
+        setMeme(memeData.meme);
+        setCorrectCaptions(memeData.captions.slice(0, 2)); // First two are correct
         setError('');
+
+        // Shuffle the captions for display
+        const shuffledCaptions = [...memeData.captions];
+        for (let i = shuffledCaptions.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffledCaptions[i], shuffledCaptions[j]] = [shuffledCaptions[j], shuffledCaptions[i]];
+        }
+        setCaptions(shuffledCaptions);
+
       } catch (err) {
         setError(err.message || 'Failed to fetch meme and captions');
       } finally {
@@ -26,6 +40,23 @@ function GamePage() {
 
     fetchRandomMeme();
   }, []);
+
+//check if the answer is correct.
+  const handleCaptionClick = (caption) => {
+    setSelectedCaption(caption);
+    const isCorrect = correctCaptions.some(correctCaption => correctCaption.id === caption.id);
+    
+    if (isCorrect) {
+      setResult({ correct: true, message: 'Correct! You earned 5 points.' });
+    } else {
+      const correctCaptionTexts = correctCaptions.map(c => c.caption);
+      setResult({
+        correct: false,
+        message: `Incorrect.`
+      });
+    }
+  };
+
 
   if (error) {
     return (
@@ -38,6 +69,7 @@ function GamePage() {
   
   return (
     <Container className="mt-5">
+      {loading && <Spinner animation="border" />}
       {meme && (
         <Card>
           <Card.Img
@@ -50,14 +82,19 @@ function GamePage() {
           <Card.Body className="text-center">
             <Card.Title>Choose a Caption for the Meme</Card.Title>
             <div className="d-flex flex-column">
-              {captions.map(caption => (
-                <Button key={caption.id} variant="outline-primary" className="my-2">
+              {captions.map((caption, index) => (
+                <Button key={caption.id} variant="outline-primary" className="my-2" onClick={() => handleCaptionClick(caption)}>
                   {caption.caption}
                 </Button>
               ))}
             </div>
           </Card.Body>
         </Card>
+      )}
+      {result && (
+        <Alert variant={result.correct ? 'success' : 'danger'} className="mt-3">
+          {result.message}
+        </Alert>
       )}
     </Container>
   );

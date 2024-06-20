@@ -1,6 +1,8 @@
 import { db } from './db.mjs';
 import crypto from 'crypto';
 
+
+
 export const getUser =( username, password)=> {
     return new Promise((resolve, reject) => {
     const sql = 'SELECT * FROM users WHERE username =?';
@@ -25,6 +27,8 @@ export const getUser =( username, password)=> {
           });
         });
       };
+
+
 
       export const getUserById = (id) => {
         return new Promise((resolve, reject) => {

@@ -1,5 +1,7 @@
 import { db } from './db.mjs';
 
+
+
 // Function to get captions
 const getRandomCaptions = (excludeIds, limit = 5) => {
   return new Promise((resolve, reject) => {
@@ -14,6 +16,8 @@ const getRandomCaptions = (excludeIds, limit = 5) => {
     });
   });
 };
+
+
 
 // Function to get best-matching captions for a specific meme
 const getBestMatchingCaptions = (memeId) => {
@@ -30,6 +34,8 @@ const getBestMatchingCaptions = (memeId) => {
     });
   });
 };
+
+
 
 // Function to get a random meme
 const getMeme = () => {

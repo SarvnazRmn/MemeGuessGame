@@ -115,13 +115,10 @@ app.get('/api/memes', async (req, res) => {
     const randomCaptions = await getRandomCaptions(bestMatchingIds, 5);
 
     // Combine the best-matching captions with the random captions
-    const allCaptions = [...bestMatchingCaptions, ...randomCaptions];
-
-    // Shuffle the combined captions to ensure randomness
-    for (let i = allCaptions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [allCaptions[i], allCaptions[j]] = [allCaptions[j], allCaptions[i]];
-    }
+    const allCaptions = [
+      ...bestMatchingCaptions.slice(0, 2), // First two are correct
+      ...randomCaptions.map(caption => ({ ...caption, correct: false }))
+    ];
 
     res.status(200).json({ meme, captions: allCaptions });
   } catch (err) {
