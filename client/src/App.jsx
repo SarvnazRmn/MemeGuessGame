@@ -9,14 +9,18 @@ import GamePage from './components/GamePage';
 import API from './assets/API.mjs';
 
 //defining WelcomePage component
-function WelcomePage({ handleStartClick }) {    //using Eventhandler for start button
+function WelcomePage({ handleStartClick ,loggedIn}) { 
+  console.log("WelcomePage - loggedIn:", loggedIn); // Debug log
+   //using Eventhandler for start button
   return (
     <Container className="d-flex flex-column justify-content-center align-items-center min-vh-100" style={{ marginTop: '-10vh' }}>
       <h2>Welcome to the Meme Guessing Game!</h2>
       <p>Press the button to start guessing the meme.</p>
-      <button className="btn btn-primary" onClick={handleStartClick}>Start</button>
-    </Container>
-  );
+      <button className="btn btn-primary" onClick={handleStartClick}>
+      {loggedIn ? "Start" : "Start as Guest"}
+        </button>
+  </Container>
+);
 }
 
 
@@ -28,9 +32,15 @@ function App() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const user = await API.getUserInfo(); // we have the user info here
-      setLoggedIn(true);
-      setUser(user);
+      try {
+        const user = await API.getUserInfo();
+        console.log("checkAuth - user:", user); // Debug log
+        setLoggedIn(true);
+        setUser(user);
+      } catch (err) {
+        console.log("checkAuth - error:", err); // Debug log
+        setLoggedIn(false);
+      }
     };
     checkAuth();
   }, []);
@@ -84,8 +94,8 @@ function App() {
       }>
         {/* Nested routes */}
         <Route path="*" element={<NotFound />} />
-        <Route path="/" element={<WelcomePage handleStartClick={handleStartClick} />} />
-        <Route path="/game" element={<GamePage />} />
+        <Route path="/" element={<WelcomePage handleStartClick={handleStartClick} loggedIn={loggedIn} />} /> 
+        <Route path="/game" element={<GamePage loggedIn={loggedIn} />} />
         <Route
           path="/login"
           element={loggedIn ? <Navigate replace to="/" /> : <LoginForm login={handleLogin} />}

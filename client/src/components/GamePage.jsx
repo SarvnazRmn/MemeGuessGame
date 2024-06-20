@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Alert, Spinner, Card, Button } from 'react-bootstrap';
 import API from '../assets/API.mjs';
 
-function GamePage() {
+function GamePage({ loggedIn }) {
+  console.log("GamePage - loggedIn:", loggedIn); // Debug log
   const [meme, setMeme] = useState(null);
   const [error, setError] = useState('');
   const [captions, setCaptions] = useState([]);
@@ -47,13 +48,9 @@ function GamePage() {
     const isCorrect = correctCaptions.some(correctCaption => correctCaption.id === caption.id);
     
     if (isCorrect) {
-      setResult({ correct: true, message: 'Correct! You earned 5 points.' });
+      setResult({ correct: true, message: loggedIn ? 'Correct! You earned 5 points.' : 'Correct!' });
     } else {
-      const correctCaptionTexts = correctCaptions.map(c => c.caption);
-      setResult({
-        correct: false,
-        message: `Incorrect.`
-      });
+      setResult({ correct: false, message: 'Incorrect.' });
     }
   };
 
