@@ -6,26 +6,14 @@ import NavHeader from "./components/NavHeader";
 import NotFound from './components/NotFoundComponent';
 import { LoginForm } from './components/AuthComponents';
 import GamePage from './components/GamePage';
+import ProfilePage from './components/ProfilePage';
+import WelcomePage from './components/WelcomePage';
 import API from './assets/API.mjs';
 
-//defining WelcomePage component
-function WelcomePage({ handleStartClick ,loggedIn}) { 
-  console.log("WelcomePage - loggedIn:", loggedIn); // Debug log
-   //using Eventhandler for start button
-  return (
-    <Container className="d-flex flex-column justify-content-center align-items-center min-vh-100" style={{ marginTop: '-10vh' }}>
-      <h2>Welcome to the Meme Guessing Game!</h2>
-      <p>Press the button to start guessing the meme.</p>
-      <button className="btn btn-primary" onClick={handleStartClick}>
-      {loggedIn ? "Start" : "Start as Guest"}
-        </button>
-  </Container>
-);
-}
+
 
 
 function App() {
-  const [count, setCount] = useState(0)
   const [loggedIn, setLoggedIn] = useState(false);
   const [message, setMessage] = useState('');
   const [user, setUser] = useState('');
@@ -34,11 +22,9 @@ function App() {
     const checkAuth = async () => {
       try {
         const user = await API.getUserInfo();
-        console.log("checkAuth - user:", user); // Debug log
         setLoggedIn(true);
         setUser(user);
       } catch (err) {
-        console.log("checkAuth - error:", err); // Debug log
         setLoggedIn(false);
       }
     };
@@ -52,6 +38,7 @@ function App() {
     // Navigate to the game page
     navigate('/game'); 
   };
+
 
   const handleLogin = async (credentials) => {
     try {
@@ -73,12 +60,15 @@ function App() {
     navigate('/');
   };
 
+
+
+
   return (
     <Routes>
       <Route element={
         <>
           {/* NavHeader and container for all routes */}
-          <NavHeader loggedIn={loggedIn} handleLogout={handleLogout} />
+          <NavHeader loggedIn={loggedIn} handleLogout={handleLogout} username={user ? user.username : ''} />
           <Container fluid className='mt-3'>
             {message && (
               <Row>
@@ -96,6 +86,7 @@ function App() {
         <Route path="*" element={<NotFound />} />
         <Route path="/" element={<WelcomePage handleStartClick={handleStartClick} loggedIn={loggedIn} />} /> 
         <Route path="/game" element={<GamePage loggedIn={loggedIn} />} />
+        <Route path="/profile" element={<ProfilePage loggedIn={loggedIn} />} />
         <Route
           path="/login"
           element={loggedIn ? <Navigate replace to="/" /> : <LoginForm login={handleLogin} />}

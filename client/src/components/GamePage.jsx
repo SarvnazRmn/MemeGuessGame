@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Alert, Spinner, Card, Button } from 'react-bootstrap';
 import API from '../assets/API.mjs';
 
+
 function GamePage({ loggedIn }) {
   console.log("GamePage - loggedIn:", loggedIn); // Debug log
   const [meme, setMeme] = useState(null);
@@ -55,6 +56,8 @@ function GamePage({ loggedIn }) {
   };
 
 
+ 
+
   if (error) {
     return (
       <Container className="mt-5">
@@ -93,6 +96,7 @@ function GamePage({ loggedIn }) {
           {result.message}
         </Alert>
       )}
+      
     </Container>
   );
 }

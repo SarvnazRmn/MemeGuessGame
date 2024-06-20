@@ -22,6 +22,9 @@ const corsOptions = {
   };
   app.use(cors(corsOptions));
 
+
+
+
 // Passport: set up local strategy -- NEW
 passport.use(new LocalStrategy(async function verify(username, password, cb) {
   const user = await getUser(username, password);
@@ -37,8 +40,8 @@ passport.serializeUser(function (user, cb) {
   
   passport.deserializeUser(function (user, cb) { // this user is id+ name
     return cb(null, user);
-    // if needed, we can do extra check here
   });
+  
   
 
  //create a middleware function to check if the user is logged in, we can protect our API by using this middleware function
@@ -56,7 +59,10 @@ passport.serializeUser(function (user, cb) {
   }));
   app.use(passport.authenticate('session'));
 
-  // POST /api/sessions -- NEW
+
+
+
+  // POST /api/sessions
 app.post('/api/sessions', function(req, res, next) {
     passport.authenticate('local', (err, user, info) => {
       if (err)
@@ -76,6 +82,9 @@ app.post('/api/sessions', function(req, res, next) {
     })(req, res, next);
   });
 
+
+
+
   // GET /api/sessions/current -- NEW
 app.get('/api/sessions/current', (req, res) => {
     if(req.isAuthenticated()) {
@@ -84,12 +93,16 @@ app.get('/api/sessions/current', (req, res) => {
       res.status(401).json({error: 'Not authenticated'});
   });
   
+
+
   // DELETE /api/session/current -- NEW
   app.delete('/api/sessions/current', (req, res) => {
     req.logout(() => {
       res.end();
     });
   });
+
+
 
   // GET /api/memes
 app.get('/api/memes', async (req, res) => {
@@ -101,6 +114,8 @@ app.get('/api/memes', async (req, res) => {
   }
 });
   
+
+
  //GET / api / memes / captions
  app.get('/api/meme/captions', async (req, res) => {
   try {
@@ -126,5 +141,6 @@ app.get('/api/memes', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
 
   app.listen(port, () => { console.log(`API server started at http://localhost:${port}`); });

@@ -1,21 +1,35 @@
-import { Container, Navbar } from 'react-bootstrap';
+import React from 'react';
+import { Navbar, Container, Nav, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { LogoutButton } from './AuthComponents';
 
-// UPDATED
-function NavHeader (props) {
-  return(
-    <Navbar bg='primary' data-bs-theme='dark'>
+const NavHeader = ({ loggedIn, handleLogout, username }) => {
+  return (
+    <Navbar bg="primary" variant="dark" expand="lg">
       <Container fluid>
-        <Link to='/' className='navbar-brand'>MemeGame</Link>
-        {/* NEW */}
-        {props.loggedIn ? 
-          <LogoutButton logout={props.handleLogout} /> :
-          <Link to='/login'className='btn btn-outline-light'>Login</Link>
-        }
+        <Navbar.Brand as={Link} to="/">MemeGame</Navbar.Brand>
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="me-auto">
+            {/* Add any other navigation links here */}
+          </Nav>
+          <Nav>
+            {loggedIn ? (
+              <>
+                <Nav.Link as={Link} to="/profile" className="me-3">
+                  {username}'s Profile
+                </Nav.Link>
+                <Button variant="outline-light" onClick={handleLogout}>Logout</Button>
+              </>
+            ) : (
+              <Button variant="outline-light" as={Link} to="/login">
+                Login
+              </Button>
+            )}
+          </Nav>
+        </Navbar.Collapse>
       </Container>
     </Navbar>
   );
-}
+};
 
 export default NavHeader;

@@ -19,6 +19,8 @@ const logIn = async (credentials) => {
     }
   };
 
+/////////////////////////////////////////////////
+
 
   const getUserInfo = async () => {
     const response = await fetch(SERVER_URL + '/api/sessions/current', {
@@ -32,6 +34,7 @@ const logIn = async (credentials) => {
     }
   };
 
+////////////////////////////////////////////////
 
   const logOut = async() => {
     const response = await fetch(SERVER_URL + '/api/sessions/current', {
@@ -41,6 +44,8 @@ const logIn = async (credentials) => {
     if (response.ok)
       return null;
   }
+
+////////////////////////////////////////////////
 
   const getMeme = async() => {
     const response = await fetch(SERVER_URL + '/api/memes', {
@@ -53,6 +58,8 @@ const logIn = async (credentials) => {
       throw meme;  // an object with the error coming from the server
     }
   };
+  
+/////////////////////////////////////////////////
 
   const getMemeWithCaptions = async () => {
     try {

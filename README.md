@@ -50,6 +50,8 @@
   - response status codes:
       - 200: OK - New game started successfully.
       - 500: Internal Server Error - Server error while starting a new game.
+
+
 - POST `/api/games/rounds`:  Starts a new round in an existing game.
   - Path Parameters: `gameId (game ID), roundId (round ID)`
   - Request Body: `{ "caption": "string" }`
@@ -59,6 +61,7 @@
       - 400: Bad Request - Invalid request body or parameters.
       - 404: Not Found - Game or round not found.
       - 500: Internal Server Error - Server error while starting a new round.
+      
 
 - POST `/api/game/round/guess`:  Submits a guess for a round.
   - Path Parameters: `gameId, roundId `
