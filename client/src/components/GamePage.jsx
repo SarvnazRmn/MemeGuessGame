@@ -12,6 +12,7 @@ function GamePage({ loggedIn }) {
   const [result, setResult] = useState(null);
   const [selectedCaption, setSelectedCaption] = useState(null);
   const [correctCaptions, setCorrectCaptions] = useState([]);
+  const [attempted, setAttempted] = useState(false); //   for letting user to choose only one asnwer(button)
 
 
   useEffect(() => {
@@ -45,6 +46,9 @@ function GamePage({ loggedIn }) {
 
 //check if the answer is correct.
   const handleCaptionClick = (caption) => {
+    if (attempted) return; // Prevent further attempts if already attempted
+    setSelectedCaption(caption);
+    setAttempted(true);
     setSelectedCaption(caption);
     const isCorrect = correctCaptions.some(correctCaption => correctCaption.id === caption.id);
     
@@ -83,10 +87,16 @@ function GamePage({ loggedIn }) {
             <Card.Title>Choose a Caption for the Meme</Card.Title>
             <div className="d-flex flex-column">
               {captions.map((caption, index) => (
-                <Button key={caption.id} variant="outline-primary" className="my-2" onClick={() => handleCaptionClick(caption)}>
-                  {caption.caption}
-                </Button>
-              ))}
+              <Button
+              key={caption.id}
+              variant="outline-primary"
+              className="my-2"
+              onClick={() => handleCaptionClick(caption)}
+              disabled={attempted && !selectedCaption} // Disable buttons after first attempt 
+            >
+              {caption.caption}
+            </Button>
+          ))}
             </div>
           </Card.Body>
         </Card>
