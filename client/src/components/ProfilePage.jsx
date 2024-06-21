@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Alert, Card, Button } from 'react-bootstrap';
+import { PersonCircle } from 'react-bootstrap-icons';
 import API from '../assets/API.mjs';
 
 
@@ -33,44 +34,60 @@ const ProfilePage = ({ loggedIn, user }) => {
 
 
   return (
-    <div>
-      <h2>User Profile</h2>
+    <Container className="mt-5">
       {loggedIn ? (
         user ? (
           <>
-            <p>Welcome, {user.username}!</p>
-            <h3>Total Score Across All Games: {totalScore}</h3>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2rem' }}>
+              <PersonCircle size={50} style={{ marginRight: '1rem' }} />
+              <div>
+                <h2>{user.username}</h2>
+                <p>Here you can view your game history and track your total scores.</p>
+              </div>
+            </div>
+
             {gameHistory ? (
               <>
-                <h3>Game History</h3>
-                {gameHistory.length > 0 ? (
-                  gameHistory.map((game, index) => (
-                    <Card key={index} className="mb-3">
-                      <Card.Body>
-                        <Card.Title>Game ID: {game.game_id}</Card.Title>
-                        <Card.Text>Total Score for Game: {game.totalScore}</Card.Text>
-                        {game.rounds.map((round, roundIndex) => (
-                          <div key={roundIndex} className="mb-3">
-                            <Row>
-                              <Col md={4}>
-                                <Card.Img variant="top" src={round.meme_url} alt={`Meme ${roundIndex + 1}`} />
-                              </Col>
-                              <Col md={8}>
-                                <Card.Text>Round Score: {round.score}</Card.Text>
-                              </Col>
-                            </Row>
-                          </div>
-                        ))}
-                      </Card.Body>
-                    </Card>
-                  ))
-                ) : (
-                  <p>No game history found.</p>
-                )}
+                <div style={{ marginTop: '2rem' }}>
+                  <h3>Game History</h3>
+                  {gameHistory.length > 0 ? (
+                    gameHistory.map((game, index) => (
+                      <Card key={index} className="mb-3">
+                        <Card.Body>
+                          <Card.Title>Game ID: {game.game_id}</Card.Title>
+                          {game.rounds.map((round, roundIndex) => (
+                            <div key={roundIndex} style={{ borderBottom: '1px solid #ddd', padding: '10px 0' }}>
+                              <Row>
+                                <Col md={4}>
+                                  <Card.Img 
+                                    variant="top" 
+                                    src={round.meme_url} 
+                                    alt={`Meme ${roundIndex + 1}`} 
+                                    style={{ width: '100px', height: '100px' }} 
+                                  />
+                                </Col>
+                                <Col md={8} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <Card.Text>Round Score: {round.score}</Card.Text>
+                                </Col>
+                              </Row>
+                            </div>
+                          ))}
+                        </Card.Body>
+                      </Card>
+                    ))
+                  ) : (
+                    <p>No game history found.</p>
+                  )}
+                </div>
               </>
             ) : (
               <p>Loading game history...</p>
             )}
+
+            <div style={{ marginTop: '2rem' }}>
+              <hr style={{ borderTop: '1px solid #ddd' }} />
+              <h4 style={{ marginTop: '1rem' }}>Total Score Across All Games: <span style={{ fontWeight: 'bold', color: 'blue' }}>{totalScore}</span></h4>
+            </div>
           </>
         ) : (
           <p>Loading user information...</p>
@@ -78,7 +95,7 @@ const ProfilePage = ({ loggedIn, user }) => {
       ) : (
         <p>Please log in to view your profile.</p>
       )}
-    </div>
+    </Container>
   );
 };
 
