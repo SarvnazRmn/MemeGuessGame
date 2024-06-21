@@ -3,7 +3,8 @@ import morgan from 'morgan';
 import cors from 'cors';
 import {check, validationResult} from 'express-validator';
 import {getUser} from './user-dao.mjs';
-import { getMeme, getRandomCaptions, getBestMatchingCaptions } from './meme-dao.mjs';
+import { getMeme, getRandomCaptions, getBestMatchingCaptions} from './meme-dao.mjs';
+import { getUserGameHistory } from './game-dao.mjs';
 
 import passport from 'passport';
 import LocalStrategy from 'passport-local';
@@ -141,6 +142,19 @@ app.get('/api/memes', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
+
+// GET /api/users/:userId/game-history
+app.get(`/api/user/:userId/game-history`, async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const games = await getUserGameHistory(userId);
+    res.status(200).json(games);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 
   app.listen(port, () => { console.log(`API server started at http://localhost:${port}`); });

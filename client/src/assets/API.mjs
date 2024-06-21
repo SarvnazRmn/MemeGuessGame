@@ -74,6 +74,27 @@ const logIn = async (credentials) => {
     }
   };
 
-  const API = { logIn,getUserInfo,getMeme,getMemeWithCaptions,logOut};
+  //////////////////////////////////////////
+
+  const getUserGameHistory = async (userId) => {
+    try {
+      const response = await fetch(SERVER_URL +  `/api/user/${userId}/game-history`, {
+        credentials: 'include',
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to fetch game history from server');
+      }
+  
+      return await response.json(); 
+    } catch (error) {
+      console.error('Failed to fetch game history:', error);
+      throw error;
+    }
+  };
+
+
+
+  const API = { logIn, getUserInfo, getMeme, getMemeWithCaptions, getUserGameHistory, logOut};
   
 export default API;
