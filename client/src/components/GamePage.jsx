@@ -6,7 +6,6 @@ const TOTAL_ROUNDS = 3;
 const ROUND_TIME = 30; // 30 seconds for each round
 
 function GamePage({ loggedIn }) {
-  console.log("GamePage - loggedIn:", loggedIn); // Debug log
   const [round, setRound] = useState(0);
   const [meme, setMeme] = useState(null);
   const [error, setError] = useState('');
@@ -63,7 +62,7 @@ function GamePage({ loggedIn }) {
       }, 1000);
       return () => clearInterval(timerId);
     } else if (timer === 0) {
-      nextRound();
+      handleTimeout();
     }
   }, [timer, attempted]);
 
@@ -71,13 +70,19 @@ function GamePage({ loggedIn }) {
     if (attempted) return; // Prevent further attempts if already attempted
     setSelectedCaption(caption);
     setAttempted(true);
+
     const isCorrect = correctCaptions.some(correctCaption => correctCaption.id === caption.id);
-    
+
     if (isCorrect) {
       setResult({ correct: true, message: loggedIn ? 'Correct! You earned 5 points.' : 'Correct!' });
     } else {
-      setResult({ correct: false, message: loggedIn ? 'Wrong caption!' : 'Incorrect.' });
+      setResult({ correct: false, message: loggedIn ? 'Wrong caption!' : 'Incorrect.', correctCaptions });
     }
+  };
+
+  const handleTimeout = () => {
+    setResult({ correct: false, message: 'Time\'s up!', correctCaptions });
+    setAttempted(true);
   };
 
   const nextRound = () => {
@@ -161,6 +166,16 @@ function GamePage({ loggedIn }) {
       {result && (
         <Alert variant={result.correct ? 'success' : 'danger'} className="mt-3">
           {result.message}
+          {!result.correct && (
+            <div>
+              Correct captions:
+              <ul>
+                {result.correctCaptions.map(caption => (
+                  <li key={caption.id}>{caption.caption}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </Alert>
       )}
       {attempted && (
