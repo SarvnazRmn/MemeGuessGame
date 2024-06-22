@@ -4,7 +4,7 @@ import cors from 'cors';
 import {check, validationResult} from 'express-validator';
 import {getUser} from './user-dao.mjs';
 import { getMeme, getRandomCaptions, getBestMatchingCaptions} from './meme-dao.mjs';
-import { getUserGameHistory } from './game-dao.mjs';
+import { getUserGameHistory, createGame, submitGame} from './game-dao.mjs';
 
 import passport from 'passport';
 import LocalStrategy from 'passport-local';
@@ -155,6 +155,39 @@ app.get(`/api/user/:userId/game-history`, async (req, res) => {
   }
 });
 
+
+// Create a new game for logged-in user
+app.post('/api/game', isLoggedIn, async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    console.log('Received create game request for userId:', userId);
+    const gameId = await createGame(userId);
+    res.json({ gameId });
+  } catch (error) {
+    console.error('Error creating game:', error);
+    res.status(500).json({ error: 'Error creating game' });
+  }
+});
+
+
+// Submit all rounds for a game 
+app.post('/api/game/:gameId/submit', isLoggedIn, async (req, res) => {
+  try {
+    const gameId = req.params.gameId;
+    const roundsData = req.body.rounds;
+
+    // Check number of rounds should be 3 
+    if (!Array.isArray(roundsData) || roundsData.length !== 3) {
+      return res.status(400).json({ error: 'You must submit exactly 3 rounds' });
+    }
+
+    const result = await submitGame(gameId, roundsData);
+    res.json(result);
+  } catch (error) {
+    console.error('Error submitting game:', error);
+    res.status(500).json({ error: 'Error submitting game' });
+  }
+});
 
 
   app.listen(port, () => { console.log(`API server started at http://localhost:${port}`); });

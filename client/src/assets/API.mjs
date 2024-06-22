@@ -1,3 +1,4 @@
+
 const SERVER_URL = 'http://localhost:3001';
 
 const logIn = async (credentials) => {
@@ -94,6 +95,54 @@ const logIn = async (credentials) => {
   };
 
 
+  //////////////////////////////////////////
+
+/*const createGame = async (userId) => {
+  try {
+    const response = await fetch(SERVER_URL + `/api/game`,{
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ userId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create game');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to create game:', error);
+    throw error;
+  }
+};
+
+////////////////////////////////////////////////
+
+const submitGame = async (gameId, roundsData) => {
+  try {
+    const response = await fetch(SERVER_URL + `/api/game/${gameId}/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ rounds: roundsData }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to submit game');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to submit game:', error);
+    throw error;
+  }
+};
+*/
 
   const API = { logIn, getUserInfo, getMeme, getMemeWithCaptions, getUserGameHistory, logOut};
   

@@ -1,4 +1,5 @@
 import { db } from './db.mjs';
+import { getBestMatchingCaptions } from './meme-dao.mjs';
 
 const createGame = async (userId) => {
   return new Promise((resolve, reject) => {
@@ -14,6 +15,76 @@ const createGame = async (userId) => {
 };
 
 
+
+//submit round of games and their score
+const submitGame = async (gameId, roundsData) => {
+  return new Promise((resolve, reject) => {
+    const insertRoundSql = `
+      INSERT INTO rounds (game_id, meme_id, selected_caption_id) 
+      VALUES (?, ?, ?)
+    `;
+    const updateRoundSql = `UPDATE rounds SET score = ? WHERE id = ?`;
+
+    let totalScore = 0;
+    let roundIds = [];
+    let allRoundsData = [];
+    let usedMemeIds = new Set();
+
+    // Check for repeated meme images
+    for (const roundData of roundsData) {
+      if (usedMemeIds.has(roundData.memeId)) {
+        return reject(new Error('Repeated meme image in the same game is not allowed.'));
+      }
+      usedMemeIds.add(roundData.memeId);
+    }
+
+    // Insert rounds data
+    roundsData.forEach((roundData, index) => {
+      db.run(insertRoundSql, [gameId, roundData.memeId, roundData.selectedCaptionId], function(err) {
+        if (err) {
+          reject(err);
+        } else {
+          roundIds.push({ roundId: this.lastID, memeId: roundData.memeId, selectedCaptionId: roundData.selectedCaptionId });
+
+          if (roundIds.length === roundsData.length) {
+            // Now we have all round IDs, let's calculate scores
+            Promise.all(
+              roundIds.map(async (round) => {
+                const bestMatchingCaptions = await getBestMatchingCaptions(round.memeId);
+                const bestCaptionIds = bestMatchingCaptions.map(caption => caption.id);
+                const score = bestCaptionIds.includes(round.selectedCaptionId) ? 5 : 0;
+                totalScore += score;
+
+                // Update the round with the score
+                await new Promise((resolve, reject) => {
+                  db.run(updateRoundSql, [score, round.roundId], function(err) {
+                    if (err) {
+                      reject(err);
+                    } else {
+                      allRoundsData.push({
+                        roundId: round.roundId,
+                        memeId: round.memeId,
+                        selectedCaptionId: round.selectedCaptionId,
+                        score: score
+                      });
+                      resolve();
+                    }
+                  });
+                });
+              })
+            ).then(() => {
+              resolve({
+                gameId: gameId,
+                totalScore: totalScore,
+                rounds: allRoundsData
+              });
+            }).catch(err => reject(err));
+          }
+        }
+      });
+    });
+  });
+};
 
 // Get games and rounds for a user ID
 const getUserGameHistory = async (userId) => {
@@ -52,4 +123,4 @@ const getUserGameHistory = async (userId) => {
   });
 };
 
-export { createGame, getUserGameHistory};
+export { createGame, submitGame, getUserGameHistory};
