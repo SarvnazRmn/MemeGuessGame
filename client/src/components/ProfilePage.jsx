@@ -8,6 +8,7 @@ const ProfilePage = ({ loggedIn, user }) => {
 
   const [gameHistory, setGameHistory] = useState(null);
   const [totalScore, setTotalScore] = useState(0);
+  const [error, setError] = useState('');
 
 
   useEffect(() => {
@@ -23,6 +24,7 @@ const ProfilePage = ({ loggedIn, user }) => {
         setTotalScore(total);
       } catch (error) {
         console.error('Error fetching game history:', error);
+        setError('Failed to fetch game history');
       }
     };
 

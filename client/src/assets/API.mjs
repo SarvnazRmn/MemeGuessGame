@@ -79,18 +79,23 @@ const logIn = async (credentials) => {
 
   const getUserGameHistory = async (userId) => {
     try {
-      const response = await fetch(SERVER_URL +  `/api/user/${userId}/game-history`, {
+      const response = await fetch(SERVER_URL +  `/api/userGameHistory/${userId}`, {
+        method: 'GET',
         credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
   
       if (!response.ok) {
         throw new Error('Failed to fetch game history from server');
       }
   
-      return await response.json(); 
+      const result = await response.json();
+      console.log('Fetched user game history:', result);
+      return result;
     } catch (error) {
-      console.error('Failed to fetch game history:', error);
-      throw error;
+      console.error('Error fetching user game history:', error);
     }
   };
 

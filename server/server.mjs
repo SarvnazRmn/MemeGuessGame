@@ -146,7 +146,7 @@ app.get('/api/memes', async (req, res) => {
 
 
 // GET /api/users/:userId/game-history
-app.get(`/api/user/:userId/game-history`, async (req, res) => {
+app.get(`/api/user/:userId/game-history`, isLoggedIn, async (req, res) => {
   const { userId } = req.params;
   try {
     const games = await getUserGameHistory(userId);
@@ -155,6 +155,7 @@ app.get(`/api/user/:userId/game-history`, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 // Create a new game for logged-in user
@@ -199,7 +200,6 @@ app.post('/api/game/start', isLoggedIn, async (req, res) => {
 
 
 
-
 app.post('/api/saveResults', async (req, res) => {
   const gameData = req.body;
   try {
@@ -210,6 +210,17 @@ app.post('/api/saveResults', async (req, res) => {
   }
 });
 
+
+app.get('/api/userGameHistory/:userId', async (req, res) => {
+  const userId = req.params.userId;
+  try {
+    const gameHistory = await getUserGameHistory(userId);
+    res.status(200).json(gameHistory);
+  } catch (error) {
+    console.error('Error fetching user game history:', error);
+    res.status(500).json({ error: 'Failed to fetch user game history' });
+  }
+});
 
 
 
