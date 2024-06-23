@@ -99,8 +99,53 @@ const logIn = async (credentials) => {
 ////////////////////////////////////////////////
 
 
+const createGame = async () => {
+  try {
+    const response = await fetch('/api/game/start', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // Include cookies in the request
+    });
+
+    if (response.ok) {
+      return await response.json();
+    } else {
+      const errorData = await response.json();
+      throw new Error(errorData.message);
+    }
+  } catch (err) {
+    console.error('Error creating game:', err);
+    throw err;
+  }
+};
+
+///////////////////////////////////////////////////
+
+const saveScores = async (gameData) => {
+  try {
+    console.log('Sending gameData:', gameData);
+    const response = await fetch(SERVER_URL + `/api/saveResults`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(gameData)
+    });
+    if (!response.ok) {
+      throw new Error('Failed to save game results');
+    }
+    const result = await response.json();
+    console.log('Save result:', result);
+    return result;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
 
 
-  const API = { logIn, getUserInfo, getMeme, getMemeWithCaptions, getUserGameHistory, logOut};
+
+  const API = { logIn, getUserInfo, getMeme, getMemeWithCaptions,createGame, getUserGameHistory,saveScores, logOut};
   
 export default API;

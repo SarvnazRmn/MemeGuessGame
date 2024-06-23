@@ -1,7 +1,4 @@
 import { db } from './db.mjs';
-import { getBestMatchingCaptions } from './meme-dao.mjs';
-
-
 
 
 const createGame = async (userId) => {
@@ -21,12 +18,10 @@ const createGame = async (userId) => {
  const saveScores = (gameData) => {
   return new Promise((resolve, reject) => {
     const insertRound = 'INSERT INTO rounds (game_id, meme_id, selected_caption_id, score) VALUES (?, ?, ?, ?)';
+    const insertGame = 'INSERT INTO games (user_id) VALUES (?)';
 
     console.log('gameData in DAO:', gameData);
     
-    if (!Array.isArray(gameData)) {
-      return reject(new Error('Invalid gameData structure'));
-    }
 
     db.serialize(() => {
       db.run('BEGIN TRANSACTION', (err) => {
@@ -37,36 +32,46 @@ const createGame = async (userId) => {
 
         let rollback = false;
 
-        gameData.forEach((round) => {
-          db.run(insertRound, [round.gameId, round.meme_id, round.selected_caption_id, round.score], (err) => {
-            if (err) {
-              rollback = true;
-              db.run('ROLLBACK', (rollbackErr) => {
-                if (rollbackErr) {
-                  reject(rollbackErr);
-                } else {
-                  reject(err);
-                }
-              });
-              return;
-            }
-          });
-        });
+        db.run(insertGame, [gameData[0].user_id], function(err) {
+          if (err) {
+            db.run('ROLLBACK', (rollbackErr) => {
+              return rollbackErr ? reject(rollbackErr) : reject(err);
+            });
+            return;
+          }
 
-        if (!rollback) {
-          db.run('COMMIT', (commitErr) => {
-            if (commitErr) {
-              reject(commitErr);
-            } else {
-              resolve();
-            }
+          const gameId = this.lastID;
+
+          gameData.forEach((round) => {
+            db.run(insertRound, [gameId, round.meme_id, round.selected_caption_id, round.score], (err) => {
+              if (err) {
+                rollback = true;
+                db.run('ROLLBACK', (rollbackErr) => {
+                  if (rollbackErr) {
+                    reject(rollbackErr);
+                  } else {
+                    reject(err);
+                  }
+                });
+                return;
+              }
+            });
           });
-        }
+
+          if (!rollback) {
+            db.run('COMMIT', (commitErr) => {
+              if (commitErr) {
+                reject(commitErr);
+              } else {
+                resolve();
+              }
+            });
+          }
+        });
       });
     });
   });
 };
-
 
 
 

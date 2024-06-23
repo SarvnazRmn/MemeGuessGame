@@ -5,7 +5,7 @@ import API from '../assets/API.mjs';
 const TOTAL_ROUNDS = 3;
 const ROUND_TIME = 30; // 30 seconds for each round
 
-function GamePage({ loggedIn ,  userId}) {
+function GamePage({ loggedIn, user }) {
   const [round, setRound] = useState(0);
   const [meme, setMeme] = useState(null);
   const [error, setError] = useState('');
@@ -16,8 +16,9 @@ function GamePage({ loggedIn ,  userId}) {
   const [correctCaptions, setCorrectCaptions] = useState([]);
   const [attempted, setAttempted] = useState(false); // for letting user to choose only one answer(button)
   const [timer, setTimer] = useState(ROUND_TIME);
+  const [gameData, setGameData] = useState([]);
   const [gameOver, setGameOver] = useState(false);
-  const [gameId, setGameId] = useState(null);
+ 
 
   const shuffleArray = (array) => {
     const shuffled = array.slice();
@@ -31,7 +32,7 @@ function GamePage({ loggedIn ,  userId}) {
   const fetchRandomMeme = async () => {
     setLoading(true);
     try {
-      const memeData = await API.getMemeWithCaptions();
+      const memeData = await API.getMemeWithCaptions(user.id);
       setCaptions(memeData.captions);
       setMeme(memeData.meme);
       setCorrectCaptions(memeData.captions.slice(0, 2)); // First two are correct
@@ -73,18 +74,25 @@ function GamePage({ loggedIn ,  userId}) {
     setAttempted(true);
 
     const isCorrect = correctCaptions.some(correctCaption => correctCaption.id === caption.id);
+    const score = isCorrect ? 5 : 0;
 
-    if (isCorrect) {
-      setResult({ correct: true, message: loggedIn ? 'Correct! You earned 5 points.' : 'Correct!' });
-      if (loggedIn) {
-        await API.updateScores(roundId, gameId, userId, 5);
-      }
-    } else {
-      setResult({ correct: false, message: loggedIn ? 'Wrong caption!' : 'Incorrect.', correctCaptions });
-      if (loggedIn) {
-        await API.updateScores(roundId, gameId, userId, 0);
-      }
+    setResult({ correct: isCorrect, message: isCorrect ? 'Correct! You earned 5 points.' : 'Incorrect.', correctCaptions });
+
+    if (loggedIn) {
+      const roundId = round + 1;
+      await API.saveScores(roundId, user.id, score);
     }
+
+    
+    const roundData = {
+      user_id: user.id,
+      round: round + 1,
+      meme_id:  meme ? meme.id : null, // Ensure memeId is included here
+      selected_caption_id: caption.id,
+      score: isCorrect ? 5 : 0,
+    };
+    console.log('Round data:', roundData);
+    setGameData((prevGameData) => [...prevGameData, roundData]);
   };
 
   const handleTimeout = () => {
@@ -110,6 +118,17 @@ function GamePage({ loggedIn ,  userId}) {
     fetchRandomMeme();
   };
 
+  const submitGame = async () => {
+    try {
+      await API.saveScores(gameData);
+      console.log('Submitting game data:', gameData); // Debugging log
+      alert('Game results submitted successfully!');
+    } catch (err) {
+      console.error('Failed to submit game results:', err);
+      alert('Failed to submit game results.');
+    }
+  };
+
   if (error) {
     return (
       <Container className="mt-5">
@@ -119,7 +138,7 @@ function GamePage({ loggedIn ,  userId}) {
   }
 
   if (loading) {
-    return <Spinner animation="border" />;
+    return (<Spinner animation="border" />);
   }
 
   if (gameOver) {
@@ -130,6 +149,7 @@ function GamePage({ loggedIn ,  userId}) {
       </Container>
     );
   }
+
 
   return (
     <Container className="mt-5">
@@ -187,9 +207,11 @@ function GamePage({ loggedIn ,  userId}) {
       )}
       {attempted && (
         <div className="text-center mt-3">
-          <Button onClick={nextRound}>
-            {round + 1 === TOTAL_ROUNDS ? 'Finish the Game' : 'Next Round'}
-          </Button>
+          {round === TOTAL_ROUNDS - 1 ? (
+              <Button onClick={submitGame}>Submit</Button>
+            ) : (
+              <Button onClick={nextRound}>Next Round</Button>
+            )}
         </div>
       )}
     </Container>

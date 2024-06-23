@@ -22,6 +22,7 @@ const corsOptions = {
     credentials: true
   };
   app.use(cors(corsOptions));
+  app.use(express.json());
 
 
 
@@ -203,9 +204,9 @@ app.post('/api/saveResults', async (req, res) => {
   const gameData = req.body;
   try {
     await saveScores(gameData);
-    res.status(200).send('Game results saved successfully');
+    res.status(200).send({ message: 'Game results saved successfully' });
   } catch (err) {
-    res.status(500).send('Error saving game results: ' + err.message);
+    res.status(500).send({ error: 'Error saving game results: ' + err.message });
   }
 });
 
