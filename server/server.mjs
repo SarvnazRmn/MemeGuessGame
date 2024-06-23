@@ -4,7 +4,7 @@ import cors from 'cors';
 import {check, validationResult} from 'express-validator';
 import {getUser} from './user-dao.mjs';
 import { getMeme, getRandomCaptions, getBestMatchingCaptions} from './meme-dao.mjs';
-import { getUserGameHistory, createGame, submitGame} from './game-dao.mjs';
+import {createGame, getUserGameHistory, saveScores} from './game-dao.mjs';
 
 import passport from 'passport';
 import LocalStrategy from 'passport-local';
@@ -157,37 +157,59 @@ app.get(`/api/user/:userId/game-history`, async (req, res) => {
 
 
 // Create a new game for logged-in user
-app.post('/api/game', isLoggedIn, async (req, res) => {
+app.post('/api/game/start', isLoggedIn, async (req, res) => {
   try {
-    const userId = req.body.userId;
-    console.log('Received create game request for userId:', userId);
-    const gameId = await createGame(userId);
-    res.json({ gameId });
-  } catch (error) {
-    console.error('Error creating game:', error);
-    res.status(500).json({ error: 'Error creating game' });
-  }
-});
+    // Create a new game for the authenticated user
+    const gameId = await createGame(req.user.id);
 
-
-// Submit all rounds for a game 
-app.post('/api/game/:gameId/submit', isLoggedIn, async (req, res) => {
-  try {
-    const gameId = req.params.gameId;
-    const roundsData = req.body.rounds;
-
-    // Check number of rounds should be 3 
-    if (!Array.isArray(roundsData) || roundsData.length !== 3) {
-      return res.status(400).json({ error: 'You must submit exactly 3 rounds' });
+    // Fetch a random meme
+    const meme = await getMeme();
+    if (!meme) {
+      return res.status(500).json({ message: 'Failed to retrieve a meme' });
     }
 
-    const result = await submitGame(gameId, roundsData);
-    res.json(result);
+    // Fetch captions for the meme
+    const captions = await getRandomCaptions(meme.id);   //////////////////not sure
+    if (!captions) {
+      return res.status(500).json({ message: 'Failed to retrieve captions' });
+    }
+
+    // Prepare the response
+    const response = {
+      gameId: gameId,
+      meme: {
+        id: meme.id,
+        url: meme.url,
+      },
+      captions: captions.map(caption => ({
+        id: caption.id,
+        text: caption.caption,
+      })),
+    };
+
+    // Send the response
+    res.status(200).json(response);
   } catch (error) {
-    console.error('Error submitting game:', error);
-    res.status(500).json({ error: 'Error submitting game' });
+    console.error('Error starting game:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
+
+
+
+
+
+app.post('/api/saveResults', async (req, res) => {
+  const gameData = req.body;
+  try {
+    await saveScores(gameData);
+    res.status(200).send('Game results saved successfully');
+  } catch (err) {
+    res.status(500).send('Error saving game results: ' + err.message);
+  }
+});
+
+
 
 
   app.listen(port, () => { console.log(`API server started at http://localhost:${port}`); });

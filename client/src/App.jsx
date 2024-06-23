@@ -85,7 +85,7 @@ function App() {
         {/* Nested routes */}
         <Route path="*" element={<NotFound />} />
         <Route path="/" element={<WelcomePage handleStartClick={handleStartClick} loggedIn={loggedIn} />} /> 
-        <Route path="/game" element={<GamePage loggedIn={loggedIn} />} />
+        <Route path="/game" element={<GamePage loggedIn={loggedIn}/>} />
         <Route path="/profile" element={<ProfilePage loggedIn={loggedIn} user={user} />} />
         <Route
           path="/login"

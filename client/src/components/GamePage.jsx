@@ -5,7 +5,7 @@ import API from '../assets/API.mjs';
 const TOTAL_ROUNDS = 3;
 const ROUND_TIME = 30; // 30 seconds for each round
 
-function GamePage({ loggedIn }) {
+function GamePage({ loggedIn ,  userId}) {
   const [round, setRound] = useState(0);
   const [meme, setMeme] = useState(null);
   const [error, setError] = useState('');
@@ -17,6 +17,7 @@ function GamePage({ loggedIn }) {
   const [attempted, setAttempted] = useState(false); // for letting user to choose only one answer(button)
   const [timer, setTimer] = useState(ROUND_TIME);
   const [gameOver, setGameOver] = useState(false);
+  const [gameId, setGameId] = useState(null);
 
   const shuffleArray = (array) => {
     const shuffled = array.slice();
@@ -66,7 +67,7 @@ function GamePage({ loggedIn }) {
     }
   }, [timer, attempted]);
 
-  const handleCaptionClick = (caption) => {
+  const handleCaptionClick = async (caption) => {
     if (attempted) return; // Prevent further attempts if already attempted
     setSelectedCaption(caption);
     setAttempted(true);
@@ -75,8 +76,14 @@ function GamePage({ loggedIn }) {
 
     if (isCorrect) {
       setResult({ correct: true, message: loggedIn ? 'Correct! You earned 5 points.' : 'Correct!' });
+      if (loggedIn) {
+        await API.updateScores(roundId, gameId, userId, 5);
+      }
     } else {
       setResult({ correct: false, message: loggedIn ? 'Wrong caption!' : 'Incorrect.', correctCaptions });
+      if (loggedIn) {
+        await API.updateScores(roundId, gameId, userId, 0);
+      }
     }
   };
 

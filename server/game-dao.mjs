@@ -1,90 +1,74 @@
 import { db } from './db.mjs';
 import { getBestMatchingCaptions } from './meme-dao.mjs';
 
+
+
+
 const createGame = async (userId) => {
   return new Promise((resolve, reject) => {
-    const sql = 'INSERT INTO games (user_id) VALUES (?)';
+    const sql = 'INSERT INTO games (user_id) VALUES ?';
     db.run(sql, [userId], function(err) {
       if (err) {
         reject(err);
       } else {
-        resolve(this.lastID); // Return the ID of the newly game
+        resolve(this.lastID); // Return the ID of the newly inserted game
       }
     });
   });
 };
 
 
-
-//submit round of games and their score
-const submitGame = async (gameId, roundsData) => {
+ const saveScores = (gameData) => {
   return new Promise((resolve, reject) => {
-    const insertRoundSql = `
-      INSERT INTO rounds (game_id, meme_id, selected_caption_id) 
-      VALUES (?, ?, ?)
-    `;
-    const updateRoundSql = `UPDATE rounds SET score = ? WHERE id = ?`;
+    const insertRound = 'INSERT INTO rounds (game_id, meme_id, selected_caption_id, score) VALUES (?, ?, ?, ?)';
 
-    let totalScore = 0;
-    let roundIds = [];
-    let allRoundsData = [];
-    let usedMemeIds = new Set();
-
-    // Check for repeated meme images
-    for (const roundData of roundsData) {
-      if (usedMemeIds.has(roundData.memeId)) {
-        return reject(new Error('Repeated meme image in the same game is not allowed.'));
-      }
-      usedMemeIds.add(roundData.memeId);
+    console.log('gameData in DAO:', gameData);
+    
+    if (!Array.isArray(gameData)) {
+      return reject(new Error('Invalid gameData structure'));
     }
 
-    // Insert rounds data
-    roundsData.forEach((roundData, index) => {
-      db.run(insertRoundSql, [gameId, roundData.memeId, roundData.selectedCaptionId], function(err) {
+    db.serialize(() => {
+      db.run('BEGIN TRANSACTION', (err) => {
         if (err) {
           reject(err);
-        } else {
-          roundIds.push({ roundId: this.lastID, memeId: roundData.memeId, selectedCaptionId: roundData.selectedCaptionId });
+          return;
+        }
 
-          if (roundIds.length === roundsData.length) {
-            // Now we have all round IDs, let's calculate scores
-            Promise.all(
-              roundIds.map(async (round) => {
-                const bestMatchingCaptions = await getBestMatchingCaptions(round.memeId);
-                const bestCaptionIds = bestMatchingCaptions.map(caption => caption.id);
-                const score = bestCaptionIds.includes(round.selectedCaptionId) ? 5 : 0;
-                totalScore += score;
+        let rollback = false;
 
-                // Update the round with the score
-                await new Promise((resolve, reject) => {
-                  db.run(updateRoundSql, [score, round.roundId], function(err) {
-                    if (err) {
-                      reject(err);
-                    } else {
-                      allRoundsData.push({
-                        roundId: round.roundId,
-                        memeId: round.memeId,
-                        selectedCaptionId: round.selectedCaptionId,
-                        score: score
-                      });
-                      resolve();
-                    }
-                  });
-                });
-              })
-            ).then(() => {
-              resolve({
-                gameId: gameId,
-                totalScore: totalScore,
-                rounds: allRoundsData
+        gameData.forEach((round) => {
+          db.run(insertRound, [round.gameId, round.meme_id, round.selected_caption_id, round.score], (err) => {
+            if (err) {
+              rollback = true;
+              db.run('ROLLBACK', (rollbackErr) => {
+                if (rollbackErr) {
+                  reject(rollbackErr);
+                } else {
+                  reject(err);
+                }
               });
-            }).catch(err => reject(err));
-          }
+              return;
+            }
+          });
+        });
+
+        if (!rollback) {
+          db.run('COMMIT', (commitErr) => {
+            if (commitErr) {
+              reject(commitErr);
+            } else {
+              resolve();
+            }
+          });
         }
       });
     });
   });
 };
+
+
+
 
 // Get games and rounds for a user ID
 const getUserGameHistory = async (userId) => {
@@ -123,4 +107,4 @@ const getUserGameHistory = async (userId) => {
   });
 };
 
-export { createGame, submitGame, getUserGameHistory};
+export { createGame, saveScores, getUserGameHistory};
