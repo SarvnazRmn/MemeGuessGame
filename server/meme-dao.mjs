@@ -38,27 +38,24 @@ const getBestMatchingCaptions = (memeId) => {
 
 
 // Function to get a random meme
-const getMeme = (count) => {
+const getMeme = () => {
   return new Promise((resolve, reject) => {
     const countSql = 'SELECT COUNT(*) AS count FROM memes';
     db.get(countSql, (err, row) => {
       if (err) {
         reject(err);
       } else {
-        const totalCount = row.count;
-        // Check if there are any memes in db
-        if (totalCount === 0) {
+        const count = row.count;
+        if (count === 0) {
           reject(new Error('No memes found'));
-        } else if (count > totalCount) {
-          reject(new Error(`Requested count (${count}) exceeds total available memes (${totalCount})`));
         } else {
-          const memeSql = 'SELECT * FROM memes ORDER BY RANDOM() LIMIT ?';
-          db.all(memeSql, [count], (err, rows) => {
+          const randomIndex = Math.floor(Math.random() * count);
+          const memeSql = 'SELECT * FROM memes LIMIT 1 OFFSET ?';
+          db.get(memeSql, [randomIndex], (err, row) => {
             if (err) {
-              // Reject promise if there is an error
               reject(err);
             } else {
-              resolve(rows);
+              resolve(row);
             }
           });
         }

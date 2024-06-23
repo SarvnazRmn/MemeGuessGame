@@ -161,38 +161,26 @@ app.get(`/api/user/:userId/game-history`, isLoggedIn, async (req, res) => {
 // Create a new game for logged-in user
 app.post('/api/game/start', isLoggedIn, async (req, res) => {
   try {
-    // Create a new game for the authenticated user
     const gameId = await createGame(req.user.id);
-
-    // Fetch a set number of unique memes
-    const memeCount = 5; // Adjust as needed
-    const memes = await getMeme(memeCount);
-    if (!memes || memes.length === 0) {
-      return res.status(500).json({ message: 'Failed to retrieve memes' });
+    const meme = await getMeme();
+    if (!meme) {
+      return res.status(500).json({ message: 'Failed to retrieve a meme' });
     }
-
-    // Fetch captions for each meme
-    const memePromises = memes.map(async (meme) => {
-      const captions = await getRandomCaptions(meme.id);
-      return {
-        id: meme.id,
-        url: meme.url,
-        captions: captions.map((caption) => ({
-        id: caption.id,
-        text: caption.caption,
-        })),
-      };
-    });
-
-    const memeData = await Promise.all(memePromises);
-
-    // Prepare the response
+    const captions = await getRandomCaptions(meme.id);
+    if (!captions) {
+      return res.status(500).json({ message: 'Failed to retrieve captions' });
+    }
     const response = {
       gameId: gameId,
-      memes: memeData,
+      meme: {
+        id: meme.id,
+        url: meme.url,
+      },
+      captions: captions.map(caption => ({
+        id: caption.id,
+        text: caption.caption,
+      })),
     };
-
-    // Send the response
     res.status(200).json(response);
   } catch (error) {
     console.error('Error starting game:', error);
