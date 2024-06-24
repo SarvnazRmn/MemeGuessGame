@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Container, Alert, Spinner, Card, Button } from 'react-bootstrap';
 import API from '../assets/API.mjs';
 
-const TOTAL_ROUNDS = 3;
+const TOTAL_ROUNDS_LOGGED_IN = 3; // Total rounds for logged-in users
+const TOTAL_ROUNDS_ANONYMOUS = 1; // Total rounds for anonymous users
 const ROUND_TIME = 30; // 30 seconds for each round
 
 function GamePage({ loggedIn, user }) {
@@ -49,13 +50,24 @@ function GamePage({ loggedIn, user }) {
   };
 
   useEffect(() => {
-    if (round < TOTAL_ROUNDS) {
-      fetchRandomMeme();
-      setTimer(ROUND_TIME); // Reset timer for new round
+    if (loggedIn) {
+      // If logged in, play according to TOTAL_ROUNDS_LOGGED_IN
+      if (round < TOTAL_ROUNDS_LOGGED_IN) {
+        fetchRandomMeme();
+        setTimer(ROUND_TIME); // Reset timer for new round
+      } else {
+        setGameOver(true);
+      }
     } else {
-      setGameOver(true);
+      // If not logged in, play only one round
+      if (round === 0) {
+        fetchRandomMeme();
+        setTimer(ROUND_TIME); // Reset timer for the round
+      } else {
+        setGameOver(true);
+      }
     }
-  }, [round]);
+  }, [round, loggedIn]);
 
   useEffect(() => {
     if (timer > 0 && !attempted) {
@@ -74,9 +86,14 @@ function GamePage({ loggedIn, user }) {
     setAttempted(true);
 
     const isCorrect = correctCaptions.some(correctCaption => correctCaption.id === caption.id);
+    const matchingCorrectCaptions = correctCaptions.filter(correctCaption => correctCaption.id !== caption.id);
     const score = isCorrect ? 5 : 0;
 
-    setResult({ correct: isCorrect, message: isCorrect ? 'Correct! You earned 5 points.' : 'Incorrect.', correctCaptions });
+    setResult({
+      correct: isCorrect,
+      message: isCorrect ? (loggedIn ? `Correct! You earned 5 points.` : 'Correct!') : (loggedIn ? 'Incorrect.' : 'Incorrect.'),
+      correctCaptions: matchingCorrectCaptions,
+    });
 
     if (loggedIn) {
       const roundId = round + 1;
@@ -121,7 +138,7 @@ function GamePage({ loggedIn, user }) {
   const submitGame = async () => {
     try {
       await API.saveScores(gameData);
-      console.log('Submitting game data:', gameData); // Debugging log
+      console.log('Submitting game data:', gameData); 
       alert('Game results submitted successfully!');
     } catch (err) {
       console.error('Failed to submit game results:', err);
@@ -149,69 +166,83 @@ function GamePage({ loggedIn, user }) {
       </Container>
     );
   }
-
-
   return (
     <Container className="mt-5">
-      <h3>Round {round + 1} of {TOTAL_ROUNDS}</h3>
-      <div>Time Remaining: {timer} seconds</div>
-      {meme && (
-        <Card>
-          <Card.Img
-            variant="top"
-            src={meme.url}
-            alt="Meme"
-            className="img-fluid mx-auto d-block"
-            style={{ maxWidth: '30%', height: 'auto', maxHeight: '300px' }}
-          />
-          <Card.Body className="text-center">
-            <Card.Title>Choose a Caption for the Meme</Card.Title>
-            <div className="d-flex flex-column">
-              {captions.map((caption) => (
-                <Button
-                  key={caption.id}
-                  variant="outline-primary"
-                  className="my-2"
-                  onClick={() => handleCaptionClick(caption)}
-                  disabled={attempted} // Disable buttons after first attempt 
-                  style={{
-                    backgroundColor:
-                      selectedCaption && selectedCaption.id === caption.id
-                        ? correctCaptions.some(correctCaption => correctCaption.id === caption.id)
-                          ? 'green'
-                          : 'red'
-                        : '',
-                  }}
-                >
-                  {caption.caption}
-                </Button>
-              ))}
-            </div>
-          </Card.Body>
-        </Card>
-      )}
-      {result && (
-        <Alert variant={result.correct ? 'success' : 'danger'} className="mt-3">
-          {result.message}
-          {!result.correct && (
-            <div>
-              Correct captions:
-              <ul>
-                {result.correctCaptions.map(caption => (
-                  <li key={caption.id}>{caption.caption}</li>
-                ))}
-              </ul>
-            </div>
+          <h3>Round {round + 1} of {loggedIn ? TOTAL_ROUNDS_LOGGED_IN : TOTAL_ROUNDS_ANONYMOUS}</h3>
+          <div>Time Remaining: {timer} seconds</div>
+          {meme && (
+            <Card>
+              <Card.Img
+                variant="top"
+                src={meme.url}
+                alt="Meme"
+                className="img-fluid mx-auto d-block"
+                style={{ maxWidth: '30%', height: 'auto', maxHeight: '300px' }}
+              />
+              <Card.Body className="text-center">
+                <Card.Title>Choose a Caption for the Meme</Card.Title>
+                <div className="d-flex flex-column">
+                  {captions.map((caption) => (
+                    <Button
+                      key={caption.id}
+                      variant="outline-primary"
+                      className="my-2"
+                      onClick={() => handleCaptionClick(caption)}
+                      disabled={attempted} // Disable buttons after first attempt 
+                      style={{
+                        backgroundColor:
+                          selectedCaption && selectedCaption.id === caption.id
+                            ? correctCaptions.some(correctCaption => correctCaption.id === caption.id)
+                              ? 'green'
+                              : 'red'
+                            : '',
+                      }}
+                    >
+                      {caption.caption}
+                    </Button>
+                  ))}
+                </div>
+              </Card.Body>
+            </Card>
           )}
-        </Alert>
-      )}
-      {attempted && (
+      {result && (
+  <Alert variant={result.correct ? 'success' : 'danger'} className="mt-3">
+    {result.message}
+    {!result.correct && (
+      <div>
+        Correct captions:
+        <ul>
+          {result.correctCaptions.map(caption => (
+            <li key={caption.id}>{caption.caption}</li>
+          ))}
+        </ul>
+      </div>
+    )}
+    {result.correct && (
+      <div>
+        Correct captions:
+        <ul>
+          {[...correctCaptions].map(caption => (
+            <li key={caption.id}>{caption.caption}</li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </Alert>
+)}
+
+           {attempted && loggedIn && (
         <div className="text-center mt-3">
-          {round === TOTAL_ROUNDS - 1 ? (
-              <Button onClick={submitGame}>Submit</Button>
-            ) : (
-              <Button onClick={nextRound}>Next Round</Button>
-            )}
+          {round === (loggedIn ? TOTAL_ROUNDS_LOGGED_IN - 1 : TOTAL_ROUNDS_ANONYMOUS - 1) ? (
+            <Button onClick={submitGame}>Submit</Button>
+          ) : (
+            <Button onClick={nextRound}>Next Round</Button>
+          )}
+        </div>
+      )}
+      {attempted && !loggedIn && (
+        <div className="text-center mt-3">
+          <Button onClick={startGame}>Refresh</Button>
         </div>
       )}
     </Container>
