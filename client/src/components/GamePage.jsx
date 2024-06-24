@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Alert, Spinner, Card, Button } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import API from '../assets/API.mjs';
+
 
 const TOTAL_ROUNDS_LOGGED_IN = 3; // Total rounds for logged-in users
 const TOTAL_ROUNDS_ANONYMOUS = 1; // Total rounds for anonymous users
@@ -19,6 +21,7 @@ function GamePage({ loggedIn, user }) {
   const [timer, setTimer] = useState(ROUND_TIME);
   const [gameData, setGameData] = useState([]);
   const [gameOver, setGameOver] = useState(false);
+  const navigate = useNavigate();
  
 
   const shuffleArray = (array) => {
@@ -140,10 +143,14 @@ function GamePage({ loggedIn, user }) {
       await API.saveScores(gameData);
       console.log('Submitting game data:', gameData); 
       alert('Game results submitted successfully!');
+      navigate(`/game-summary/`);
     } catch (err) {
       console.error('Failed to submit game results:', err);
       alert('Failed to submit game results.');
     }
+  };
+  const calculateTotalScore = () => {
+    return gameData.reduce((totalScore, roundData) => totalScore + roundData.score, 0);
   };
 
   if (error) {
