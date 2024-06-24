@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Container, Alert, Spinner, Card, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import API from '../assets/API.mjs';
+import Summary from './Summary';
 
 
 const TOTAL_ROUNDS_LOGGED_IN = 3; // Total rounds for logged-in users
@@ -21,9 +22,11 @@ function GamePage({ loggedIn, user }) {
   const [timer, setTimer] = useState(ROUND_TIME);
   const [gameData, setGameData] = useState([]);
   const [gameOver, setGameOver] = useState(false);
-  const navigate = useNavigate();
- 
 
+  const [showSummary, setShowSummary] = useState(false);
+  const [gameHistory, setGameHistory] = useState(null); // State to hold game history data
+
+ 
   const shuffleArray = (array) => {
     const shuffled = array.slice();
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -107,51 +110,59 @@ function GamePage({ loggedIn, user }) {
     const roundData = {
       user_id: user.id,
       round: round + 1,
-      meme_id:  meme ? meme.id : null, // Ensure memeId is included here
-      selected_caption_id: caption.id,
+      meme_url:  meme ? meme.url : null, // Ensure memeId is included here
+      selected_caption: caption.caption,
       score: isCorrect ? 5 : 0,
+      };
+      console.log('Round data:', roundData);
+      setGameData((prevGameData) => [...prevGameData, roundData]);
+      };
+
+      const handleTimeout = () => {
+        setResult({ correct: false, message: 'Time\'s up!', correctCaptions });
+        setAttempted(true);
+      };
+
+    const nextRound = () => {
+      setRound((prevRound) => prevRound + 1);
+      setAttempted(false);
+      setSelectedCaption(null);
+      setResult(null);
+      setTimer(ROUND_TIME);
     };
-    console.log('Round data:', roundData);
-    setGameData((prevGameData) => [...prevGameData, roundData]);
-  };
 
-  const handleTimeout = () => {
-    setResult({ correct: false, message: 'Time\'s up!', correctCaptions });
-    setAttempted(true);
-  };
-
-  const nextRound = () => {
-    setRound((prevRound) => prevRound + 1);
-    setAttempted(false);
-    setSelectedCaption(null);
-    setResult(null);
-    setTimer(ROUND_TIME);
-  };
-
-  const startGame = () => {
-    setRound(0);
-    setGameOver(false);
-    setAttempted(false);
-    setSelectedCaption(null);
-    setResult(null);
-    setTimer(ROUND_TIME);
-    fetchRandomMeme();
-  };
+    const startGame = () => {
+      setRound(0);
+      setGameOver(false);
+      setAttempted(false);
+      setSelectedCaption(null);
+      setResult(null);
+      setTimer(ROUND_TIME);
+      fetchRandomMeme();
+    };
 
   const submitGame = async () => {
     try {
-      await API.saveScores(gameData);
-      console.log('Submitting game data:', gameData); 
-      alert('Game results submitted successfully!');
-      navigate(`/game-summary/`);
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const totalScore = calculateTotalScore();
+      const constructedGameHistory = gameData.map((roundData) => ({
+        rounds: [{ meme_url: roundData.meme_url, score: roundData.score , selected_caption: roundData.selected_caption}]
+      }));
+      setGameHistory(constructedGameHistory);
+
+
+      setShowSummary(true);
     } catch (err) {
       console.error('Failed to submit game results:', err);
       alert('Failed to submit game results.');
     }
   };
+  
   const calculateTotalScore = () => {
     return gameData.reduce((totalScore, roundData) => totalScore + roundData.score, 0);
   };
+
 
   if (error) {
     return (
@@ -159,6 +170,10 @@ function GamePage({ loggedIn, user }) {
         <Alert variant="danger">Error: {error}</Alert>
       </Container>
     );
+  }
+
+  if (showSummary) {
+    return <Summary gameHistory={gameHistory} />;
   }
 
   if (loading) {

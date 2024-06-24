@@ -8,7 +8,6 @@ import { LoginForm } from './components/AuthComponents';
 import GamePage from './components/GamePage';
 import ProfilePage from './components/ProfilePage';
 import WelcomePage from './components/WelcomePage';
-import GameSummaryPage from './components/GameSummaryPage';
 import API from './assets/API.mjs';
 
 
@@ -93,8 +92,6 @@ function App() {
           element={loggedIn ? <Navigate replace to="/" /> : <LoginForm login={handleLogin} />}
         />
       </Route>
-      <Route path="/game-summary/" element={<GameSummaryPage loggedIn={loggedIn} user={user} />} />
-
     </Routes>
   );
 }
