@@ -58,7 +58,7 @@ const ProfilePage = ({ loggedIn, user }) => {
                       return (
                         <Card key={index} className="mb-3">
                           <Card.Body>
-                            <Card.Title>Game ID: {game.game_id}</Card.Title>
+                            
                             <hr />
                             {game.rounds.map((round, roundIndex) => (
                               <div key={roundIndex} style={{ borderBottom: '1px solid #ddd', padding: '10px 0' }}>
