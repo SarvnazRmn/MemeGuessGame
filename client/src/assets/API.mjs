@@ -46,20 +46,7 @@ const logIn = async (credentials) => {
       return null;
   }
 
-////////////////////////////////////////////////
 
-  const getMeme = async() => {
-    const response = await fetch(SERVER_URL + '/api/memes', {
-      credentials: 'include',
-    });
-    const meme = await response.json();
-    if (response.ok) {
-      return meme;
-    } else {
-      throw meme;  // an object with the error coming from the server
-    }
-  };
-  
 /////////////////////////////////////////////////
 
   const getMemeWithCaptions = async () => {
@@ -126,6 +113,6 @@ const saveScores = async (gameData) => {
 
 
 
-  const API = { logIn, getUserInfo, getMeme, getMemeWithCaptions, getUserGameHistory,saveScores, logOut};
+  const API = { logIn, getUserInfo, getMemeWithCaptions, getUserGameHistory,saveScores, logOut};
   
 export default API;

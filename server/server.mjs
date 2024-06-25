@@ -106,18 +106,6 @@ app.get('/api/sessions/current', (req, res) => {
 
 
 
-  // GET /api/memes
-app.get('/api/memes', async (req, res) => {
-  try {
-    const meme = await getMeme();
-    res.status(200).json({ memeId: meme.id, imageUrl: meme.url });
-  } catch (err) {
-    res.status(500).json({ error: ' Server error while retrieving meme.' });
-  }
-});
-  
-
-
  //GET / api / memes / captions
  app.get('/api/meme/captions', async (req, res) => {
   try {
