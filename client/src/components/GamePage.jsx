@@ -22,7 +22,6 @@ function GamePage({ loggedIn, user }) {
   const [timer, setTimer] = useState(ROUND_TIME);
   const [gameData, setGameData] = useState([]);
   const [gameOver, setGameOver] = useState(false);
-
   const [showSummary, setShowSummary] = useState(false);
   const [gameHistory, setGameHistory] = useState(null); // State to hold game history data
 

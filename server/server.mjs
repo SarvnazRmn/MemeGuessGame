@@ -4,7 +4,7 @@ import cors from 'cors';
 import {check, validationResult} from 'express-validator';
 import {getUser} from './user-dao.mjs';
 import { getMeme, getRandomCaptions, getBestMatchingCaptions} from './meme-dao.mjs';
-import {createGame, getUserGameHistory, saveScores} from './game-dao.mjs';
+import { getUserGameHistory, saveScores} from './game-dao.mjs';
 
 import passport from 'passport';
 import LocalStrategy from 'passport-local';
@@ -155,40 +155,6 @@ app.get(`/api/user/:userId/game-history`, isLoggedIn, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-
-
-// Create a new game for logged-in user
-app.post('/api/game/start', isLoggedIn, async (req, res) => {
-  try {
-    const gameId = await createGame(req.user.id);
-    const meme = await getMeme();
-    if (!meme) {
-      return res.status(500).json({ message: 'Failed to retrieve a meme' });
-    }
-    const captions = await getRandomCaptions(meme.id);
-    if (!captions) {
-      return res.status(500).json({ message: 'Failed to retrieve captions' });
-    }
-    const response = {
-      gameId: gameId,
-      meme: {
-        id: meme.id,
-        url: meme.url,
-      },
-      captions: captions.map(caption => ({
-        id: caption.id,
-        text: caption.caption,
-      })),
-    };
-    res.status(200).json(response);
-  } catch (error) {
-    console.error('Error starting game:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
-
 
 
 app.post('/api/saveResults', async (req, res) => {

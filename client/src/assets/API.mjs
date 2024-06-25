@@ -103,31 +103,6 @@ const logIn = async (credentials) => {
 
 ////////////////////////////////////////////////
 
-
-const createGame = async () => {
-  try {
-    const response = await fetch('/api/game/start', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include', // Include cookies in the request
-    });
-
-    if (response.ok) {
-      return await response.json();
-    } else {
-      const errorData = await response.json();
-      throw new Error(errorData.message);
-    }
-  } catch (err) {
-    console.error('Error creating game:', err);
-    throw err;
-  }
-};
-
-///////////////////////////////////////////////////
-
 const saveScores = async (gameData) => {
   try {
     console.log('Sending gameData:', gameData);
@@ -151,6 +126,6 @@ const saveScores = async (gameData) => {
 
 
 
-  const API = { logIn, getUserInfo, getMeme, getMemeWithCaptions,createGame, getUserGameHistory,saveScores, logOut};
+  const API = { logIn, getUserInfo, getMeme, getMemeWithCaptions, getUserGameHistory,saveScores, logOut};
   
 export default API;

@@ -1,20 +1,5 @@
 import { db } from './db.mjs';
 
-
-const createGame = async (userId) => {
-  return new Promise((resolve, reject) => {
-    const sql = 'INSERT INTO games (user_id) VALUES ?';
-    db.run(sql, [userId], function(err) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(this.lastID); // Return the ID of the newly inserted game
-      }
-    });
-  });
-};
-
-
  const saveScores = (gameData) => {
   return new Promise((resolve, reject) => {
     const insertRound = 'INSERT INTO rounds (game_id, meme_id, selected_caption_id, score) VALUES (?, ?, ?, ?)';
@@ -112,4 +97,4 @@ const getUserGameHistory = async (userId) => {
   });
 };
 
-export { createGame, saveScores, getUserGameHistory};
+export { saveScores, getUserGameHistory};
