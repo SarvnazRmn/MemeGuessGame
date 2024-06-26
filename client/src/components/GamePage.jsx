@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Alert, Spinner, Card, Button } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
 import API from '../assets/API.mjs';
-import Summary from './Summary';
+import Summary from './Summary.jsx';
 
 
 const TOTAL_ROUNDS_LOGGED_IN = 3; // Total rounds for logged-in users
@@ -22,10 +21,10 @@ function GamePage({ loggedIn, user }) {
   const [timer, setTimer] = useState(ROUND_TIME);
   const [gameData, setGameData] = useState([]);
   const [gameOver, setGameOver] = useState(false);
-  const [showSummary, setShowSummary] = useState(false);
-  const [gameHistory, setGameHistory] = useState(null); // State to hold game history data
-
+  const [correctAnswers, setCorrectAnswers] = useState([]); 
+  const [submitted, setSubmitted] = useState(false); // State to track if game has been submitted
  
+
   const shuffleArray = (array) => {
     const shuffled = array.slice();
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -53,6 +52,93 @@ function GamePage({ loggedIn, user }) {
       setLoading(false);
     }
   };
+
+  
+
+
+  const startGame = () => {
+    setRound(0);
+    setGameOver(false);
+    setAttempted(false);
+    setSelectedCaption(null);
+    setResult(null);
+    setTimer(ROUND_TIME);
+    fetchRandomMeme();
+    setCorrectAnswers([]);
+  };
+
+
+  const handleCaptionClick = async (caption) => {
+    if (attempted) return; // Prevent further attempts if already attempted
+    setSelectedCaption(caption);
+    setAttempted(true);
+
+    const isCorrect = correctCaptions.some(correctCaption => correctCaption.id === caption.id);
+    const matchingCorrectCaptions = correctCaptions.filter(correctCaption => correctCaption.id !== caption.id);
+    const score = isCorrect ? 5 : 0;
+
+    setResult({
+      correct: isCorrect,
+      message: isCorrect ? (loggedIn ? `Correct! You earned 5 points.` : 'Correct!') : (loggedIn ? 'Incorrect.' : 'Incorrect.'),
+      correctCaptions: matchingCorrectCaptions,
+    });
+
+    if (isCorrect) {
+      setCorrectAnswers(prevCorrectAnswers => [
+        ...prevCorrectAnswers,
+        {
+          memeId: meme.id,
+          memeUrl: meme.url, // Include meme URL
+          captionId: caption.id,
+          captionText: caption.caption, // Include caption text
+          score: 5,
+        }
+      ]);
+    }
+
+    if (loggedIn) {
+      const roundId = round + 1;
+      await API.saveScores(roundId, user.id, score);
+    }
+
+    
+    const roundData = {
+      user_id: user.id,
+      round: round + 1,
+      meme_id:  meme ? meme.id : null, // Ensure memeId is included here
+      selected_caption_id: caption.id,
+      score: isCorrect ? 5 : 0,
+    };
+    console.log('Round data:', roundData);
+    setGameData((prevGameData) => [...prevGameData, roundData]);
+  };
+
+  const handleTimeout = () => {
+    setResult({ correct: false, message: 'Time\'s up!', correctCaptions });
+    setAttempted(true);
+  };
+
+  const nextRound = () => {
+    setRound((prevRound) => prevRound + 1);
+    setAttempted(false);
+    setSelectedCaption(null);
+    setResult(null);
+    setTimer(ROUND_TIME);
+  };
+
+
+
+  const submitGame = async () => {
+    try {
+      await API.saveScores(gameData);
+      console.log('Submitting game data:', gameData); 
+      setSubmitted(true);
+    } catch (err) {
+      console.error('Failed to submit game results:', err);
+      alert('Failed to submit game results.');
+    }
+  };
+  
 
   useEffect(() => {
     if (loggedIn) {
@@ -85,95 +171,8 @@ function GamePage({ loggedIn, user }) {
     }
   }, [timer, attempted]);
 
-  const handleCaptionClick = async (caption) => {
-    if (attempted) return; // Prevent further attempts if already attempted
-    setSelectedCaption(caption);
-    setAttempted(true);
-
-    const isCorrect = correctCaptions.some(correctCaption => correctCaption.id === caption.id);
-    const matchingCorrectCaptions = correctCaptions.filter(correctCaption => correctCaption.id !== caption.id);
-    const score = isCorrect ? 5 : 0;
-
-    setResult({
-      correct: isCorrect,
-      message: isCorrect ? (loggedIn ? `Correct! You earned 5 points.` : 'Correct!') : (loggedIn ? 'Incorrect.' : 'Incorrect.'),
-      correctCaptions: matchingCorrectCaptions,
-    });
-
-    if (loggedIn) {
-      const roundId = round + 1;
-      await API.saveScores(roundId, user.id, score);
-    }
-
-    
-    const roundData = {
-      user_id: user.id,
-      round: round + 1,
-      meme_url:  meme ? meme.url : null, // Ensure memeId is included here
-      selected_caption: caption.caption,
-      score: isCorrect ? 5 : 0,
-      };
-      console.log('Round data:', roundData);
-      setGameData((prevGameData) => [...prevGameData, roundData]);
-      };
-
-      const handleTimeout = () => {
-        setResult({ correct: false, message: 'Time\'s up!', correctCaptions });
-        setAttempted(true);
-      };
-
-    const nextRound = () => {
-      setRound((prevRound) => prevRound + 1);
-      setAttempted(false);
-      setSelectedCaption(null);
-      setResult(null);
-      setTimer(ROUND_TIME);
-    };
-
-    const startGame = () => {
-      setRound(0);
-      setGameOver(false);
-      setAttempted(false);
-      setSelectedCaption(null);
-      setResult(null);
-      setTimer(ROUND_TIME);
-      fetchRandomMeme();
-    };
-
-  const submitGame = async () => {
-    try {
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const totalScore = calculateTotalScore();
-      const constructedGameHistory = gameData.map((roundData) => ({
-        rounds: [{ meme_url: roundData.meme_url, score: roundData.score , selected_caption: roundData.selected_caption}]
-      }));
-      setGameHistory(constructedGameHistory);
 
 
-      setShowSummary(true);
-    } catch (err) {
-      console.error('Failed to submit game results:', err);
-      alert('Failed to submit game results.');
-    }
-  };
-  
-  const calculateTotalScore = () => {
-    return gameData.reduce((totalScore, roundData) => totalScore + roundData.score, 0);
-  };
-
-
-  if (error) {
-    return (
-      <Container className="mt-5">
-        <Alert variant="danger">Error: {error}</Alert>
-      </Container>
-    );
-  }
-
-  if (showSummary) {
-    return <Summary gameHistory={gameHistory} />;
-  }
 
   if (loading) {
     return (<Spinner animation="border" />);
@@ -183,10 +182,23 @@ function GamePage({ loggedIn, user }) {
     return (
       <Container className="text-center">
         <h3>Game Over! Thanks for playing!</h3>
-        <Button onClick={startGame}>Play Again</Button>
+        <Button onClick={submitGame}>Submit</Button>
       </Container>
     );
   }
+
+
+  if (submitted) {
+    return (
+      <Summary
+        summaryData={correctAnswers} // Pass correctAnswers to summaryData
+        totalScore={correctAnswers.reduce((acc, curr) => acc + curr.score, 0)} // Calculate total score
+        
+      />
+    );
+  }
+
+
   return (
     <Container className="mt-5">
           <h3>Round {round + 1} of {loggedIn ? TOTAL_ROUNDS_LOGGED_IN : TOTAL_ROUNDS_ANONYMOUS}</h3>
