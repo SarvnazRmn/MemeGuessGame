@@ -23,7 +23,7 @@ function GamePage({ loggedIn, user }) {
   const [gameOver, setGameOver] = useState(false);
   const [correctAnswers, setCorrectAnswers] = useState([]); 
   const [submitted, setSubmitted] = useState(false); // State to track if game has been submitted
- 
+  const [usedMeme, setUsedMeme] = useState([]);
 
   const shuffleArray = (array) => {
     const shuffled = array.slice();
@@ -37,7 +37,11 @@ function GamePage({ loggedIn, user }) {
   const fetchRandomMeme = async () => {
     setLoading(true);
     try {
-      const memeData = await API.getMemeWithCaptions(user.id);
+      let memeData;
+      do {
+        memeData = await API.getMemeWithCaptions(user.id, usedMeme);
+      } while (usedMeme.includes(memeData.meme.id));
+      
       setCaptions(memeData.captions);
       setMeme(memeData.meme);
       setCorrectCaptions(memeData.captions.slice(0, 2)); // First two are correct
@@ -46,6 +50,7 @@ function GamePage({ loggedIn, user }) {
       // Shuffle the captions for display
       const shuffledCaptions = shuffleArray(memeData.captions);
       setCaptions(shuffledCaptions);
+      setUsedMeme((prevUsedMeme) => [...prevUsedMeme, memeData.meme.id]);
     } catch (err) {
       setError(err.message || 'Failed to fetch meme and captions');
     } finally {
@@ -65,6 +70,7 @@ function GamePage({ loggedIn, user }) {
     setTimer(ROUND_TIME);
     fetchRandomMeme();
     setCorrectAnswers([]);
+    setUsedMeme([]); 
   };
 
 

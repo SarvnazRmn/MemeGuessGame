@@ -18,7 +18,7 @@ function App() {
   const [message, setMessage] = useState('');
   const [user, setUser] = useState('');
 
-  /*useEffect(() => {
+  useEffect(() => {
     const checkAuth = async () => {
       try {
         const user = await API.getUserInfo();
@@ -28,8 +28,10 @@ function App() {
         setLoggedIn(false);
       }
     };
-    checkAuth();
-  }, []);*/
+    if (loggedIn) {
+      checkAuth();
+    }
+  }, [loggedIn]);
 
   const navigate = useNavigate();
   //Eventhandler for start button

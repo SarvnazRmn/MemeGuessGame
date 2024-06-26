@@ -1,10 +1,12 @@
 import React from 'react';
 import { Container, Table, Button } from 'react-bootstrap';
+import { useNavigate  } from 'react-router-dom';
 
 function Summary({ summaryData, totalScore }) {
+   const navigate = useNavigate();
 
     const handleRefresh = () => {
-        window.location.reload();
+      navigate('/');
       };
 
       return (
