@@ -6,6 +6,7 @@ import {getUser} from './user-dao.mjs';
 import { getMeme, getRandomCaptions, getBestMatchingCaptions} from './meme-dao.mjs';
 import { getUserGameHistory, saveScores} from './game-dao.mjs';
 
+
 import passport from 'passport';
 import LocalStrategy from 'passport-local';
 import session from 'express-session';
@@ -13,17 +14,21 @@ import session from 'express-session';
 const app = express();
 const port = 3001;
 
+
 // middleware
 app.use(express.json());
 app.use(morgan('dev'));
+
+
 const corsOptions = {
     origin: 'http://localhost:5173',
     optionsSuccessStatus: 200,
     credentials: true
+    
+    
   };
   app.use(cors(corsOptions));
   app.use(express.json());
-
 
 
 
@@ -97,7 +102,7 @@ app.get('/api/sessions/current', (req, res) => {
   
 
 
-  // DELETE /api/session/current -- NEW
+  // DELETE /api/session/current 
   app.delete('/api/sessions/current', (req, res) => {
     req.logout(() => {
       res.end();
@@ -167,6 +172,7 @@ app.get('/api/userGameHistory/:userId', async (req, res) => {
   }
 });
 
-
-
+export const startServer = () => {
   app.listen(port, () => { console.log(`API server started at http://localhost:${port}`); });
+
+}

@@ -93,21 +93,24 @@ const logIn = async (credentials) => {
 const saveScores = async (gameData) => {
   try {
     console.log('Sending gameData:', gameData);
-    const response = await fetch(SERVER_URL + `/api/saveResults`, {
+    const response = await fetch(`${SERVER_URL}/api/saveResults`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(gameData)
     });
+
     if (!response.ok) {
       throw new Error('Failed to save game results');
     }
+    
     const result = await response.json();
     console.log('Save result:', result);
     return result;
   } catch (error) {
     console.error('Error:', error);
+    
   }
 };
 
