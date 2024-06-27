@@ -1,0 +1,37 @@
+
+
+GET  http://localhost:3001/api/meme/captions
+
+###
+
+
+POST http://localhost:3001/api/saveResults
+Content-Type: application/json
+Accept: application/json
+
+[
+  {
+    "user_id": 1,
+    "round": 1,
+    "meme_id": 6,
+    "selected_caption_id": 25,
+    "score": 5
+  }
+
+]
+
+
+###
+
+POST  http://localhost:3001/api/sessions
+Content-Type: application/json
+
+{
+    "username": "sarvenaz",
+    "password": "sarvenaz"
+}
+
+### 
+
+GET http://localhost:3001/api/userGameHistory/1
+Content-Type: application/json
