@@ -125,9 +125,9 @@
   - `id, game_id, meme_id, selected_caption_id, score`
 ## Screenshots
 
-![screenshot1](./img/screenshot1.png)
+![screenshot1](./img/Screenshot1.png)
 
-![screenshot2](./img/screenshot2.png)
+![screenshot2](./img/Screenshot2.png)
 
 
 ## Users Credentials
