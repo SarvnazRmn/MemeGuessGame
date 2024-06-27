@@ -1,7 +1,7 @@
 import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
-import {check, validationResult} from 'express-validator';
+import {check, validationResult , body, query} from 'express-validator';
 import {getUser} from './user-dao.mjs';
 import { getMeme, getRandomCaptions, getBestMatchingCaptions} from './meme-dao.mjs';
 import { getUserGameHistory, saveScores} from './game-dao.mjs';
@@ -20,6 +20,7 @@ const port = 3001;
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(bodyParser.json());
+
 
 // CORS setup to allow requests from our client
 const corsOptions = {
@@ -40,17 +41,20 @@ passport.use(new LocalStrategy(async function verify(username, password, cb) {
   return cb(null, user);
 }));
 
+//store into session the user information
 passport.serializeUser(function (user, cb) {
     cb(null, user);
   });
   
+//get the user unformation from the session
   passport.deserializeUser(function (user, cb) { 
     return cb(null, user);
   });
   
   
 /////////////////////////////////////////////////////////////////
- //this middleware function checks if the user is logged in
+ 
+//this middleware function checks if the user is logged in
   const isLoggedIn = (req, res, next) => {
     if(req.isAuthenticated()) {
       return next();
@@ -65,22 +69,40 @@ passport.serializeUser(function (user, cb) {
     resave: false,
     saveUninitialized: false,
   }));
+
+  //store authentication information in the session
   app.use(passport.authenticate('session'));
 
 
+
+
 /////////////////////////////////////////////////////////////////
-  // POST /api/sessions
+  
+// POST /api/sessions
   // Login endpoint
-app.post('/api/sessions', function(req, res, next) {
-    passport.authenticate('local', (err, user, info) => {
+app.post('/api/sessions', [
+  //validating username and password
+  check('username', 'Username is needed').notEmpty(),
+  check('password', 'Password is needed').notEmpty(),
+  ], (req, res, next) => {
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  //after authentication is successfull, this function will be called
+  passport.authenticate('local', (err, user, info) => {
       if (err)
         return next(err);
         if (!user) {
-          return res.status(401).send(info);
+          return res.status(401).send(info); // wrong login
         }
         req.login(user, (err) => {
           if (err)
             return next(err);
+
+          // req.user contains the authenticated user, we send all the user info back
             return res.status(201).json(req.user);
         });
     })(req, res, next);
@@ -88,7 +110,8 @@ app.post('/api/sessions', function(req, res, next) {
 
 
 /////////////////////////////////////////////////////////////////
-  // GET /api/sessions/current
+  
+// GET /api/sessions/current
   // Endpoint to get the current session user
 app.get('/api/sessions/current', (req, res) => {
     if(req.isAuthenticated()) {
@@ -99,7 +122,8 @@ app.get('/api/sessions/current', (req, res) => {
   
 
 /////////////////////////////////////////////////////////////////
-  // DELETE /api/session/current 
+  
+// DELETE /api/session/current 
   // Logout endpoint
   app.delete('/api/sessions/current', (req, res) => {
     req.logout(() => {
@@ -109,7 +133,8 @@ app.get('/api/sessions/current', (req, res) => {
 
 
 /////////////////////////////////////////////////////////////////
- //GET / api / memes / captions
+ 
+//GET / api / memes / captions
  // Endpoint to get a meme with captions
  app.get('/api/meme/captions', async (req, res) => {
   try {
@@ -140,15 +165,32 @@ app.get('/api/sessions/current', (req, res) => {
 /////////////////////////////////////////////////////////////////
 // POST /api/saveResults
 // Endpoint to save game results
-app.post('/api/saveResults', async (req, res) => {
-  const gameData = req.body;
-  try {
-    await saveScores(gameData);
-    res.status(200).send({ message: 'Game results saved successfully' });
-  } catch (err) {
-    res.status(500).send({ error: 'Error saving game results: ' + err.message });
+app.post(
+  '/api/saveResults',
+  [
+    // Validation 
+    body().isArray().withMessage('Game data should be an array'),
+    body('*.user_id').isInt().withMessage('User ID should be an integer'),
+    body('*.round').isInt().withMessage('Round should be an integer'),
+    body('*.meme_id').isInt().withMessage('Meme ID should be an integer'),
+    body('*.selected_caption_id').isInt().withMessage('Selected Caption ID should be an integer'),
+    body('*.score').isInt({ min: 0, max:5 }).withMessage('Score should be a non-negative integer between 0 and 5')
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const gameData = req.body;
+    try {
+      await saveScores(gameData);
+      res.status(200).send({ message: 'Game results saved successfully' });
+    } catch (err) {
+      res.status(500).send({ error: 'Error saving game results: ' + err.message });
+    }
   }
-});
+);
 
 /////////////////////////////////////////////////////////////////
 // POST /api/userGameHistory/:userId

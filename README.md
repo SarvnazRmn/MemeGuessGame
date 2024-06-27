@@ -1,5 +1,5 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-24ddc0f5d75046c5622901739e7c5dd533143b0c8e959d652212380cedb1ea36.svg)](https://classroom.github.com/a/AVMm0VzU)
-# Exam 1: "Exam Title"
+# Exam 1: "Meme Game"
 ## Student: s326344 ROUMIANFAR SARVNAZSADAT 
 
 ## React Client Application Routes
@@ -84,15 +84,15 @@
 
 -  GET `/api/meme/captions`: Retrieves seven possible captions for a given meme .
   - request Parameters: memeId
-  - Response: `{ captions: [{ id: integer, text: string }, { id: integer, text: string }] }`
+  - Response: `{ captions: [{ id: integer, caption: string }, { id: integer, caption: string }] }`
       - 200: OK - Captions retrieved successfully.
       - 500: Internal Server Error - Server error while retrieving captions.
 
 
 
-- GET `/api/users/profile`: Retrieves the profile and game history of a user.
-  - Path Parameters: `userId `
-  - Response: `{ "games": [{ "gameId": "integer", "rounds": [{ "meme": "string", "score": "integer" }] }] }`
+- GET `/api/userGameHistory/:userId`: Retrieves game history of a user.
+  - request body: `userId `
+  - Response: `{ "games": [{ "gameId": "integer", "rounds": [{ "round_id":"integer","selected_caption_-id":"integer", "score": "integer" ,"meme_url":"string"}] }] }`
   - response status code:
       - 200: OK - Profile and game history retrieved successfully.
       - 500: Internal Server Error - Server error while retrieving profile.
@@ -100,7 +100,7 @@
 
 
 - POST  `/api/saveResults` : Saves game results.
-  - request parameters: `{"userId": "integer","gameData": {"rounds": [{ "roundId": "integer", "score":"integer" }]} }`
+  - request parameters: `{"user_id": "integer","round":"integer", "meme_id":integer","selected_caption_id:"integer", "score":"integer" }]} }`
   - Response:  `{"message": "Game results saved successfully"}`
   - Response Status Codes:
   - 200: OK - Game results saved successfully.
@@ -125,9 +125,9 @@
   - `id, game_id, meme_id, selected_caption_id, score`
 ## Screenshots
 
-![Screenshot1](./img/screenshot.jpg)
+![Screenshot1](./img/screenshot1.png)
 
-![Screenshot2](./img/screenshot.jpg)
+![Screenshot2](./img/screenshot2.png)
 
 
 ## Users Credentials

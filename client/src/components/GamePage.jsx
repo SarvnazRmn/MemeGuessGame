@@ -116,13 +116,6 @@ function GamePage({ loggedIn, user }) {
       ]);
     }
 
-
-    // Save the score for the current round in the database if the user is logged in.
-    if (loggedIn) {
-      const roundId = round + 1;
-      await API.saveScores(roundId, user.id, score);
-    }
-
     
     const roundData = {
       user_id: user.id,
@@ -149,6 +142,7 @@ function GamePage({ loggedIn, user }) {
     setResult(null);
     setTimer(ROUND_TIME);
   };
+
 
 
  // --Submit game data to the server--
@@ -206,14 +200,7 @@ function GamePage({ loggedIn, user }) {
     return (<Spinner animation="border" />);
   }
 
-  if (gameOver) {
-    return (
-      <Container className="text-center">
-        <h3>Game Over! Thanks for playing!</h3>
-        <Button onClick={submitGame}>Submit</Button>
-      </Container>
-    );
-  }
+
 
 
   // --Display summary after game submission--
@@ -226,6 +213,8 @@ function GamePage({ loggedIn, user }) {
       />
     );
   }
+
+
 
 
   return (
@@ -298,15 +287,20 @@ function GamePage({ loggedIn, user }) {
   </Alert>
 )}
 
+
 {attempted && loggedIn && (
-      <div className="text-center mt-3">
-        {round === (loggedIn ? TOTAL_ROUNDS_LOGGED_IN - 1 : TOTAL_ROUNDS_ANONYMOUS - 1) ? (
-          <Button onClick={submitGame}>Submit</Button>
-        ) : (
-          <Button onClick={nextRound}>Next Round</Button>
-        )}
-      </div>
+  <div className="text-center mt-3">
+    {(gameData.length === 0 && round>1 ) ? (
+      <p>Nothing played</p>
+    ) : (
+      round === (loggedIn ? TOTAL_ROUNDS_LOGGED_IN - 1 : TOTAL_ROUNDS_ANONYMOUS - 1) ? (
+        <Button onClick={submitGame}>Submit</Button>
+      ) : (
+        <Button onClick={nextRound}>Next Round</Button>
+      )
     )}
+  </div>
+)}
 
     {attempted && !loggedIn && (
       <div className="text-center mt-3">
