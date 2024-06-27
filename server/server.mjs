@@ -5,11 +5,12 @@ import {check, validationResult} from 'express-validator';
 import {getUser} from './user-dao.mjs';
 import { getMeme, getRandomCaptions, getBestMatchingCaptions} from './meme-dao.mjs';
 import { getUserGameHistory, saveScores} from './game-dao.mjs';
-
+import bodyParser from 'body-parser';
 
 import passport from 'passport';
 import LocalStrategy from 'passport-local';
 import session from 'express-session';
+
 // init
 const app = express();
 const port = 3001;
@@ -18,21 +19,19 @@ const port = 3001;
 // middleware
 app.use(express.json());
 app.use(morgan('dev'));
+app.use(bodyParser.json());
 
-
+// CORS setup to allow requests from our client
 const corsOptions = {
     origin: 'http://localhost:5173',
     optionsSuccessStatus: 200,
     credentials: true
-    
-    
   };
   app.use(cors(corsOptions));
-  app.use(express.json());
 
 
 
-// Passport: set up local strategy -- NEW
+//Passport setup for handling user login
 passport.use(new LocalStrategy(async function verify(username, password, cb) {
   const user = await getUser(username, password);
   if(!user)
@@ -45,20 +44,22 @@ passport.serializeUser(function (user, cb) {
     cb(null, user);
   });
   
-  passport.deserializeUser(function (user, cb) { // this user is id+ name
+  passport.deserializeUser(function (user, cb) { 
     return cb(null, user);
   });
   
   
-
- //create a middleware function to check if the user is logged in, we can protect our API by using this middleware function
+/////////////////////////////////////////////////////////////////
+ //this middleware function checks if the user is logged in
   const isLoggedIn = (req, res, next) => {
     if(req.isAuthenticated()) {
       return next();
     }
     return res.status(401).json({error: 'Not authorized'});
   }
+ 
   
+  //keeping track of user sessions
   app.use(session({
     secret: "shhhhh... it's a secret!",
     resave: false,
@@ -67,32 +68,28 @@ passport.serializeUser(function (user, cb) {
   app.use(passport.authenticate('session'));
 
 
-
-
+/////////////////////////////////////////////////////////////////
   // POST /api/sessions
+  // Login endpoint
 app.post('/api/sessions', function(req, res, next) {
     passport.authenticate('local', (err, user, info) => {
       if (err)
         return next(err);
         if (!user) {
-          // display wrong login messages
           return res.status(401).send(info);
         }
-        // success, perform the login
         req.login(user, (err) => {
           if (err)
             return next(err);
-          
-          // req.user contains the authenticated user, we send all the user info back
-          return res.status(201).json(req.user);
+            return res.status(201).json(req.user);
         });
     })(req, res, next);
   });
 
 
-
-
-  // GET /api/sessions/current -- NEW
+/////////////////////////////////////////////////////////////////
+  // GET /api/sessions/current
+  // Endpoint to get the current session user
 app.get('/api/sessions/current', (req, res) => {
     if(req.isAuthenticated()) {
       res.json(req.user);}
@@ -101,8 +98,9 @@ app.get('/api/sessions/current', (req, res) => {
   });
   
 
-
+/////////////////////////////////////////////////////////////////
   // DELETE /api/session/current 
+  // Logout endpoint
   app.delete('/api/sessions/current', (req, res) => {
     req.logout(() => {
       res.end();
@@ -110,8 +108,9 @@ app.get('/api/sessions/current', (req, res) => {
   });
 
 
-
+/////////////////////////////////////////////////////////////////
  //GET / api / memes / captions
+ // Endpoint to get a meme with captions
  app.get('/api/meme/captions', async (req, res) => {
   try {
     const meme = await getMeme();
@@ -138,18 +137,9 @@ app.get('/api/sessions/current', (req, res) => {
 });
 
 
-// GET /api/users/:userId/game-history
-app.get(`/api/user/:userId/game-history`, isLoggedIn, async (req, res) => {
-  const { userId } = req.params;
-  try {
-    const games = await getUserGameHistory(userId);
-    res.status(200).json(games);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-
+/////////////////////////////////////////////////////////////////
+// POST /api/saveResults
+// Endpoint to save game results
 app.post('/api/saveResults', async (req, res) => {
   const gameData = req.body;
   try {
@@ -160,7 +150,9 @@ app.post('/api/saveResults', async (req, res) => {
   }
 });
 
-
+/////////////////////////////////////////////////////////////////
+// POST /api/userGameHistory/:userId
+// Endpoint to get user game history
 app.get('/api/userGameHistory/:userId', async (req, res) => {
   const userId = req.params.userId;
   try {
@@ -171,6 +163,9 @@ app.get('/api/userGameHistory/:userId', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch user game history' });
   }
 });
+
+
+
 
 export const startServer = () => {
   app.listen(port, () => { console.log(`API server started at http://localhost:${port}`); });

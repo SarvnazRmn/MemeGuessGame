@@ -2,9 +2,10 @@ import { db } from './db.mjs';
 
 
 
-// Function to get captions
+// Function to get 5 captions excluding best-matching caption IDs
 const getRandomCaptions = (excludeIds, limit = 5) => {
   return new Promise((resolve, reject) => {
+    //string of placeholders for the excluded IDs
     const placeholders = excludeIds.map(() => '?').join(',');
     const sql = `SELECT id, caption FROM captions WHERE id NOT IN (${placeholders}) ORDER BY RANDOM() LIMIT ?`;
     db.all(sql, [...excludeIds, limit], (err, rows) => {
@@ -41,6 +42,8 @@ const getBestMatchingCaptions = (memeId) => {
 const getMeme = () => {
   return new Promise((resolve, reject) => {
     const countSql = 'SELECT COUNT(*) AS count FROM memes';
+
+    // Get the count of memes in the database
     db.get(countSql, (err, row) => {
       if (err) {
         reject(err);
@@ -49,7 +52,9 @@ const getMeme = () => {
         if (count === 0) {
           reject(new Error('No memes found'));
         } else {
+          // Get a random index in the range of available memes
           const randomIndex = Math.floor(Math.random() * count);
+          // SQL query to select a meme at the random index
           const memeSql = 'SELECT * FROM memes LIMIT 1 OFFSET ?';
           db.get(memeSql, [randomIndex], (err, row) => {
             if (err) {

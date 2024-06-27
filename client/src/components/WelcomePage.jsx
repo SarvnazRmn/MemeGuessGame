@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Alert, Card, Button } from 'react-bootstrap';
-import API from '../assets/API.mjs';
+import { Container } from 'react-bootstrap';
 
 
 function WelcomePage({ handleStartClick ,loggedIn}) { 

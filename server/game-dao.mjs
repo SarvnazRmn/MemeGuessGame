@@ -25,8 +25,9 @@ import { db } from './db.mjs';
             return;
           }
 
-          const gameId = this.lastID;
+          const gameId = this.lastID; // Retrieve the ID of the inserted game
 
+          // Insert each round record for the game
           gameData.forEach((round) => {
             db.run(insertRound, [gameId, round.meme_id, round.selected_caption_id, round.score], (err) => {
               if (err) {
@@ -76,6 +77,7 @@ const getUserGameHistory = async (userId) => {
         reject(err);
       } else {
         console.log('SQl returned rows:', rows)
+        // game history object to be returned
         const games = {};
         rows.forEach(row => {
           if (!games[row.game_id]) {
@@ -91,7 +93,8 @@ const getUserGameHistory = async (userId) => {
             meme_url: row.url
           });
         });
-        resolve(Object.values(games)); // Convert object to array of games
+        // Convert object to array of games
+        resolve(Object.values(games)); 
       }
     });
   });

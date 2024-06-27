@@ -1,22 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Alert, Card, Button } from 'react-bootstrap';
+import { Container, Row, Col, Card } from 'react-bootstrap';
 import { PersonCircle } from 'react-bootstrap-icons';
 import API from '../assets/API.mjs';
 
 
 const ProfilePage = ({ loggedIn, user }) => {
 
-  const [gameHistory, setGameHistory] = useState(null);
+  const [gameHistory, setGameHistory] = useState(null);  // State to hold user's game history
   const [totalScore, setTotalScore] = useState(0);
   const [error, setError] = useState('');
 
 
+
+  // --Fetches the user's game history and calculates the total score--
   useEffect(() => {
     const fetchGameHistory = async () => {
       try {
-        const historyData = await API.getUserGameHistory(user.id); // Fetch game history
+        const historyData = await API.getUserGameHistory(user.id); 
         setGameHistory(historyData);
 
+
+        //total score from all games
         const total = historyData.reduce((sum, game) => {
           const gameTotalScore = game.rounds.reduce((gameSum, round) => gameSum + round.score, 0);
           return sum + gameTotalScore;
@@ -47,7 +51,8 @@ const ProfilePage = ({ loggedIn, user }) => {
                 <p>Here you can view your game history and track your total scores.</p>
               </div>
             </div>
-  
+            
+            {/* Render game history */}
             {gameHistory ? (
               <>
                 <div style={{ marginTop: '2rem' }}>

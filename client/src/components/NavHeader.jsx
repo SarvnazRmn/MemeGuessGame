@@ -3,7 +3,7 @@ import { Navbar, Container, Nav, Button } from 'react-bootstrap';
 import { Link , useLocation } from 'react-router-dom';
 
 const NavHeader = ({ loggedIn, handleLogout, username }) => {
-  const location = useLocation(); // to determine where is path
+  const location = useLocation(); // to get current location  
   return (
     <Navbar bg="primary" variant="dark" expand="lg">
       <Container fluid>
@@ -21,12 +21,14 @@ const NavHeader = ({ loggedIn, handleLogout, username }) => {
                     Back to Game Page
                   </Nav.Link>
                 )}
+                {/* Show user's profile link and logout button */}
                 <Nav.Link as={Link} to="/profile" className="me-3">
                   {username}'s Profile
                 </Nav.Link>
                 <Button variant="outline-light" onClick={handleLogout}>Logout</Button>
               </>
             ) : (
+              // Show login button if user is not logged in
               <Button variant="outline-light" as={Link} to="/login">
                 Login
               </Button>

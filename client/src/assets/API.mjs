@@ -1,6 +1,7 @@
 
 const SERVER_URL = 'http://localhost:3001';
 
+//Logs in the user using provided credentials.
 const logIn = async (credentials) => {
     const response = await fetch(SERVER_URL + '/api/sessions', {
       method: 'POST',
@@ -20,8 +21,9 @@ const logIn = async (credentials) => {
     }
   };
 
-/////////////////////////////////////////////////
 
+/////////////////////////////////////////////////
+//Retrieves current user information from the server.
 
   const getUserInfo = async () => {
     const response = await fetch(SERVER_URL + '/api/sessions/current', {
@@ -31,12 +33,13 @@ const logIn = async (credentials) => {
     if (response.ok) {
       return user;
     } else {
-      throw user;  // an object with the error coming from the server
+      throw user;  
     }
   };
 
-////////////////////////////////////////////////
 
+////////////////////////////////////////////////
+//Logs out the current user.
   const logOut = async() => {
     const response = await fetch(SERVER_URL + '/api/sessions/current', {
       method: 'DELETE',
@@ -44,11 +47,11 @@ const logIn = async (credentials) => {
     });
     if (response.ok)
       return null;
-  }
+  };
 
 
 /////////////////////////////////////////////////
-
+//Fetches a meme with captions from the server.
   const getMemeWithCaptions = async () => {
     try {
       const response = await fetch(SERVER_URL + `/api/meme/captions`);
@@ -62,8 +65,9 @@ const logIn = async (credentials) => {
     }
   };
 
-  //////////////////////////////////////////
 
+///////////////////////////////////////////
+//Fetches the game history for a specific user.
   const getUserGameHistory = async (userId) => {
     try {
       const response = await fetch(SERVER_URL +  `/api/userGameHistory/${userId}`, {
@@ -89,14 +93,15 @@ const logIn = async (credentials) => {
 
 
 ////////////////////////////////////////////////
-
+// Saves game scores to the server.
 const saveScores = async (gameData) => {
   try {
     console.log('Sending gameData:', gameData);
     const response = await fetch(`${SERVER_URL}/api/saveResults`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify(gameData)
     });
@@ -114,8 +119,5 @@ const saveScores = async (gameData) => {
   }
 };
 
-
-
-  const API = { logIn, getUserInfo, getMemeWithCaptions, getUserGameHistory,saveScores, logOut};
-  
+const API = { logIn, getUserInfo, getMemeWithCaptions, getUserGameHistory,saveScores, logOut};
 export default API;

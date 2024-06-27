@@ -6,7 +6,7 @@ import Summary from './Summary.jsx';
 
 const TOTAL_ROUNDS_LOGGED_IN = 3; // Total rounds for logged-in users
 const TOTAL_ROUNDS_ANONYMOUS = 1; // Total rounds for anonymous users
-const ROUND_TIME = 30; // 30 seconds for each round
+const ROUND_TIME = 30; 
 
 function GamePage({ loggedIn, user }) {
   const [round, setRound] = useState(0);
@@ -17,14 +17,17 @@ function GamePage({ loggedIn, user }) {
   const [result, setResult] = useState(null);
   const [selectedCaption, setSelectedCaption] = useState(null);
   const [correctCaptions, setCorrectCaptions] = useState([]);
-  const [attempted, setAttempted] = useState(false); // for letting user to choose only one answer(button)
+  const [attempted, setAttempted] = useState(false); // for letting user to choose only one answer
   const [timer, setTimer] = useState(ROUND_TIME);
   const [gameData, setGameData] = useState([]);
   const [gameOver, setGameOver] = useState(false);
   const [correctAnswers, setCorrectAnswers] = useState([]); 
-  const [submitted, setSubmitted] = useState(false); // State to track if game has been submitted
-  const [usedMeme, setUsedMeme] = useState([]);
+  const [submitted, setSubmitted] = useState(false); // track if game has been submitted
+  const [usedMeme, setUsedMeme] = useState([]); // track memes that are used in each round
 
+
+
+   // --Shuffle captions to display captions randomly--
   const shuffleArray = (array) => {
     const shuffled = array.slice();
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -34,6 +37,9 @@ function GamePage({ loggedIn, user }) {
     return shuffled;
   };
 
+
+
+  // --Fetch a random meme with captions--
   const fetchRandomMeme = async () => {
     setLoading(true);
     try {
@@ -41,15 +47,14 @@ function GamePage({ loggedIn, user }) {
       do {
         memeData = await API.getMemeWithCaptions(user.id, usedMeme);
       } while (usedMeme.includes(memeData.meme.id));
-      
       setCaptions(memeData.captions);
       setMeme(memeData.meme);
-      setCorrectCaptions(memeData.captions.slice(0, 2)); // First two are correct
+      setCorrectCaptions(memeData.captions.slice(0, 2)); // First two captions are correct
       setError('');
 
-      // Shuffle the captions for display
       const shuffledCaptions = shuffleArray(memeData.captions);
       setCaptions(shuffledCaptions);
+      // Add the current meme's id to the usedMeme array 
       setUsedMeme((prevUsedMeme) => [...prevUsedMeme, memeData.meme.id]);
     } catch (err) {
       setError(err.message || 'Failed to fetch meme and captions');
@@ -60,7 +65,7 @@ function GamePage({ loggedIn, user }) {
 
   
 
-
+  //--start a new game--
   const startGame = () => {
     setRound(0);
     setGameOver(false);
@@ -74,34 +79,45 @@ function GamePage({ loggedIn, user }) {
   };
 
 
+
+   // --Handle caption selection by the user--
   const handleCaptionClick = async (caption) => {
-    if (attempted) return; // Prevent further attempts if already attempted
+    if (attempted) return; // Prevent from further attempts if user already attempted
     setSelectedCaption(caption);
     setAttempted(true);
 
+
+    //comparing id of selected caption with the ids of correct captions
     const isCorrect = correctCaptions.some(correctCaption => correctCaption.id === caption.id);
+    // Filter the selected caption from the correct captions
     const matchingCorrectCaptions = correctCaptions.filter(correctCaption => correctCaption.id !== caption.id);
     const score = isCorrect ? 5 : 0;
 
+
+
+    //display result state to user
     setResult({
       correct: isCorrect,
       message: isCorrect ? (loggedIn ? `Correct! You earned 5 points.` : 'Correct!') : (loggedIn ? 'Incorrect.' : 'Incorrect.'),
       correctCaptions: matchingCorrectCaptions,
     });
 
+
     if (isCorrect) {
       setCorrectAnswers(prevCorrectAnswers => [
         ...prevCorrectAnswers,
         {
           memeId: meme.id,
-          memeUrl: meme.url, // Include meme URL
+          memeUrl: meme.url, 
           captionId: caption.id,
-          captionText: caption.caption, // Include caption text
+          captionText: caption.caption, 
           score: 5,
         }
       ]);
     }
 
+
+    // Save the score for the current round in the database if the user is logged in.
     if (loggedIn) {
       const roundId = round + 1;
       await API.saveScores(roundId, user.id, score);
@@ -111,7 +127,7 @@ function GamePage({ loggedIn, user }) {
     const roundData = {
       user_id: user.id,
       round: round + 1,
-      meme_id:  meme ? meme.id : null, // Ensure memeId is included here
+      meme_id:  meme ? meme.id : null, 
       selected_caption_id: caption.id,
       score: isCorrect ? 5 : 0,
     };
@@ -124,6 +140,8 @@ function GamePage({ loggedIn, user }) {
     setAttempted(true);
   };
 
+
+  // --Proceed to the next round--
   const nextRound = () => {
     setRound((prevRound) => prevRound + 1);
     setAttempted(false);
@@ -133,7 +151,7 @@ function GamePage({ loggedIn, user }) {
   };
 
 
-
+ // --Submit game data to the server--
   const submitGame = async () => {
     try {
       await API.saveScores(gameData);
@@ -146,9 +164,10 @@ function GamePage({ loggedIn, user }) {
   };
   
 
+
+  // --Fetch a new meme at the start of each round--
   useEffect(() => {
     if (loggedIn) {
-      // If logged in, play according to TOTAL_ROUNDS_LOGGED_IN
       if (round < TOTAL_ROUNDS_LOGGED_IN) {
         fetchRandomMeme();
         setTimer(ROUND_TIME); // Reset timer for new round
@@ -159,13 +178,16 @@ function GamePage({ loggedIn, user }) {
       // If not logged in, play only one round
       if (round === 0) {
         fetchRandomMeme();
-        setTimer(ROUND_TIME); // Reset timer for the round
+        setTimer(ROUND_TIME);
       } else {
         setGameOver(true);
       }
     }
   }, [round, loggedIn]);
 
+
+
+  //-- Manage the countdown timer--
   useEffect(() => {
     if (timer > 0 && !attempted) {
       const timerId = setInterval(() => {
@@ -194,11 +216,12 @@ function GamePage({ loggedIn, user }) {
   }
 
 
+  // --Display summary after game submission--
   if (submitted) {
     return (
       <Summary
         summaryData={correctAnswers} // Pass correctAnswers to summaryData
-        totalScore={correctAnswers.reduce((acc, curr) => acc + curr.score, 0)} // Calculate total score
+        totalScore={correctAnswers.reduce((acc, curr) => acc + curr.score, 0)} 
         
       />
     );
@@ -209,6 +232,8 @@ function GamePage({ loggedIn, user }) {
     <Container className="mt-5">
           <h3>Round {round + 1} of {loggedIn ? TOTAL_ROUNDS_LOGGED_IN : TOTAL_ROUNDS_ANONYMOUS}</h3>
           <div>Time Remaining: {timer} seconds</div>
+
+          {/* Display meme and caption selection */}
           {meme && (
             <Card>
               <Card.Img
@@ -227,7 +252,7 @@ function GamePage({ loggedIn, user }) {
                       variant="outline-primary"
                       className="my-2"
                       onClick={() => handleCaptionClick(caption)}
-                      disabled={attempted} // Disable buttons after first attempt 
+                      disabled={attempted} 
                       style={{
                         backgroundColor:
                           selectedCaption && selectedCaption.id === caption.id
@@ -244,6 +269,8 @@ function GamePage({ loggedIn, user }) {
               </Card.Body>
             </Card>
           )}
+
+      {/* Display result alert */}
       {result && (
   <Alert variant={result.correct ? 'success' : 'danger'} className="mt-3">
     {result.message}
@@ -257,6 +284,7 @@ function GamePage({ loggedIn, user }) {
         </ul>
       </div>
     )}
+     {/* Map through correct captions */}
     {result.correct && (
       <div>
         Correct captions:
@@ -270,22 +298,23 @@ function GamePage({ loggedIn, user }) {
   </Alert>
 )}
 
-           {attempted && loggedIn && (
-        <div className="text-center mt-3">
-          {round === (loggedIn ? TOTAL_ROUNDS_LOGGED_IN - 1 : TOTAL_ROUNDS_ANONYMOUS - 1) ? (
-            <Button onClick={submitGame}>Submit</Button>
-          ) : (
-            <Button onClick={nextRound}>Next Round</Button>
-          )}
-        </div>
-      )}
-      {attempted && !loggedIn && (
-        <div className="text-center mt-3">
-          <Button onClick={startGame}>Refresh</Button>
-        </div>
-      )}
-    </Container>
-  );
+{attempted && loggedIn && (
+      <div className="text-center mt-3">
+        {round === (loggedIn ? TOTAL_ROUNDS_LOGGED_IN - 1 : TOTAL_ROUNDS_ANONYMOUS - 1) ? (
+          <Button onClick={submitGame}>Submit</Button>
+        ) : (
+          <Button onClick={nextRound}>Next Round</Button>
+        )}
+      </div>
+    )}
+
+    {attempted && !loggedIn && (
+      <div className="text-center mt-3">
+        <Button onClick={startGame}>Refresh</Button>
+      </div>
+    )}
+  </Container>
+);
 }
 
 export default GamePage;

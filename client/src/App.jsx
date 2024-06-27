@@ -37,7 +37,6 @@ function App() {
   //Eventhandler for start button
   const handleStartClick = () => {
     console.log("Start button clicked!");
-    // Navigate to the game page
     navigate('/game'); 
   };
 

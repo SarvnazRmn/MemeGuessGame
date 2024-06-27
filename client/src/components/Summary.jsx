@@ -5,6 +5,7 @@ import { useNavigate  } from 'react-router-dom';
 function Summary({ summaryData, totalScore }) {
    const navigate = useNavigate();
 
+    // --Function to starting a new game--
     const handleRefresh = () => {
       navigate('/');
       };
@@ -12,6 +13,8 @@ function Summary({ summaryData, totalScore }) {
       return (
         <Container className="mt-5">
           <h2>Game Summary</h2>
+
+          {/* Table to display summary */}
           <Table striped bordered hover>
             <thead>
               <tr>
@@ -22,6 +25,7 @@ function Summary({ summaryData, totalScore }) {
               </tr>
             </thead>
             <tbody>
+              {/* Map through summaryData to display summary item */}
               {summaryData.map((data, index) => (
                 <tr key={index}>
                   <td>{index + 1}</td>
